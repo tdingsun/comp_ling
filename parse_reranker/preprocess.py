@@ -34,6 +34,7 @@ class ParsingDataset(Dataset):
                 # and make sure you pad your inputs.
                 label = line.strip().split()
                 input_seq = [START_TOKEN] + label[:-1]
+
                 
                 label_vectorized = []
                 # split the whole file (including both training and validation
@@ -43,7 +44,7 @@ class ParsingDataset(Dataset):
                         self.word2id[word] = self.curr_id
                         self.curr_id += 1
                     label_vectorized.append(self.word2id[word])
-                input_vectorized = [self.word2id[START_TOKEN]] + label_vectorized
+                input_vectorized = [self.word2id[START_TOKEN]] + label_vectorized[:-1]
 
                 self.lengths.append(len(input_seq))
                 self.max_seq_len = max(self.max_seq_len, len(input_seq))
@@ -92,7 +93,7 @@ class RerankingDataset(Dataset):
         been encountered before (not in word2id). Split the data according to
         gold file. Calculate number of constituents from the gold file.
 
-        :param parse_fxile: the file containing potential parses
+        :param parse_file: the file containing potential parses
         :param gold_file: the file containing the right parsings
         :param word2id: the previous mapping (dictionary) from word to its word
                         id
@@ -100,6 +101,11 @@ class RerankingDataset(Dataset):
         #parse_file: reranker_train
         #gold file: gold
         #test parses: conv
+        # read the input file line by line and put the lines in a list.
+        with open(parse_file, 'rt', encoding='latin') as data_file:
+            for line in data_file: 
+
+        
         pass
 
     def __len__(self):

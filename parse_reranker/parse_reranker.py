@@ -13,7 +13,7 @@ from tqdm import tqdm  # optional progress bar
 hyperparams = {
     "rnn_size": 64,
     "embedding_size": 64,
-    "num_epochs": 5,
+    "num_epochs": 1,
     "batch_size": 20,
     "learning_rate": 0.001
 }
@@ -41,11 +41,12 @@ def train(model, train_loader, experiment, hyperparams):
                 batch['input_vector'].to(device)
                 optimizer.zero_grad()
                 y_pred = model(batch['input_vector'], batch['lengths'])
-                loss = loss_fn(y_pred,  batch['label_vector'])
-                loss.backwards()
+                y_pred = torch.flatten(y_pred, 0, 1)
+                y_actual = torch.flatten(batch['label_vector'], 0, 1)
+                loss = loss_fn(y_pred,  y_actual)
+                loss.backward()
                 optimizer.step()
 
-        pass
 
 
 def validate(model, validate_loader, experiment, hyperparams):
@@ -65,6 +66,15 @@ def validate(model, validate_loader, experiment, hyperparams):
     # TODO: Write validating loop
     model = model.eval()
     with experiment.validate():
+        for batch in tqdm(validate_loader):
+            batch['input_vector'].to(device)
+            y_pred = model(batch['input_vector'], batch['lengths'])
+            y_pred = torch.flatten(y_pred, 0, 1)
+            y_actual = torch.flatten(batch['label_vector'], 0, 1)
+            loss = loss_fn(y_pred,  y_actual)
+            total_loss += loss
+            word_count += np.sum(batch['lengths'])
+        perplexity = np.exp(total_loss / word_count)
         print("perplexity:", perplexity)
         experiment.log_metric("perplexity", perplexity)
 
@@ -84,6 +94,16 @@ def test(model, test_dataset, experiment, hyperparams):
         precision = None
         recall = None
         f1 = None
+
+        for batch in tqdm(validate_loader):
+            batch['input_vector'].to(device)
+            y_pred = model(batch['input_vector'], batch['lengths'])
+            y_pred = torch.flatten(y_pred, 0, 1)
+            y_actual = torch.flatten(batch['label_vector'], 0, 1)
+            loss = loss_fn(y_pred,  y_actual)
+            total_loss += loss
+            word_count += np.sum(batch['lengths'])
+
         print("precision:", precision)
         print("recall:", recall)
         print("F1:", f1)
@@ -125,6 +145,10 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_subset, batch_size = hyperparams["batch_size"], shuffle=True)
     validate_loader = DataLoader(validation_subset, batch_size = hyperparams["batch_size"], shuffle=True)
 
+
+    #for testing
+    reranking_dataset = RerankingDataset(args.parse_file, args.gold_file, parse_dataset.word2id)
+    
     vocab_size = parse_dataset.vocab_size
     model = LSTMLM(
         vocab_size,

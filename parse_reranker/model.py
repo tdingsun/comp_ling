@@ -37,11 +37,13 @@ class LSTMLM(nn.Module):
                  (window_size, batch_size, vocab_size)
         """
         # TODO: write forward propagation
+        total_length = inputs.shape[1]
 
         embeds = self.embeddings(inputs) #output size: batchsize x max_seq_len x embedding_len
         packed_input = pack_padded_sequence(embeds, lengths, batch_first=True, enforce_sorted=False)
-        print(packed_input.data.shape)
         lstm_out, _ = self.lstm(packed_input)
-        
+        output, _ = pad_packed_sequence(lstm_out, batch_first=True, total_length=total_length)
+        logits = self.dense(output)
+        return logits #batch size, window size, vocab size
         # make sure you use pack_padded_sequence and pad_padded_sequence to
         # reduce calculation

@@ -18,6 +18,7 @@ hyperparams = {
     "learning_rate": 0.001
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
 
 
 def train(model, train_loader, experiment, hyperparams):
@@ -148,7 +149,7 @@ if __name__ == "__main__":
 
     #for testing
     reranking_dataset = RerankingDataset(args.parse_file, args.gold_file, parse_dataset.word2id)
-    
+
     vocab_size = parse_dataset.vocab_size
     model = LSTMLM(
         vocab_size,

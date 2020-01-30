@@ -55,6 +55,7 @@ class ParsingDataset(Dataset):
 
             self.input_vectors = pad_sequence(self.input_vectors, batch_first=True)
             self.label_vectors = pad_sequence(self.label_vectors, batch_first=True)
+            self.lengths = torch.tensor(self.lengths)
 
         self.vocab_size = len(self.word2id)
         print(self.max_seq_len)

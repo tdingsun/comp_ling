@@ -40,6 +40,8 @@ def train(model, train_loader, experiment, hyperparams):
         for e in range(hyperparams["num_epochs"]):
             for batch in tqdm(train_loader):
                 batch['input_vector'].to(device)
+                batch['label_vector'].to(device)
+                batch['lengths'].to(device)
                 optimizer.zero_grad()
                 y_pred = model(batch['input_vector'], batch['lengths'])
                 y_pred = torch.flatten(y_pred, 0, 1)

@@ -102,11 +102,11 @@ class RerankingDataset(Dataset):
         #gold file: gold
         #test parses: conv
         # read the input file line by line and put the lines in a list.
-        with open(parse_file, 'rt', encoding='latin') as data_file:
-            for line in data_file: 
+        # with open(parse_file, 'rt', encoding='latin') as data_file:
+        #     for line in data_file: 
 
         
-        pass
+        # pass
 
     def __len__(self):
         """

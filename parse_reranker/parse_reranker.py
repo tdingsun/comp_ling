@@ -77,7 +77,7 @@ def validate(model, validate_loader, experiment, hyperparams):
             y_pred = torch.flatten(y_pred, 0, 1)
             y_actual = torch.flatten(y, 0, 1)
             loss = loss_fn(y_pred,  y_actual)
-            total_loss += loss
+            total_loss += loss.item()
             word_count += torch.sum(batch['lengths']).item()
         perplexity = np.exp(total_loss / word_count)
         print("perplexity:", perplexity)

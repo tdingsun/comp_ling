@@ -31,7 +31,7 @@ def train(model, train_loader, experiment, hyperparams):
     :param hyperparams: hyperparameters dictionary
     """
     # TODO: Define loss function and optimizer
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
 
     # TODO: Write training loop
@@ -66,17 +66,19 @@ def validate(model, validate_loader, experiment, hyperparams):
     total_loss = 0
     word_count = 0
 
-    # TODO: Write validating loop
+    # Write validating loop
     model = model.eval()
     with experiment.validate():
         for batch in tqdm(validate_loader):
-            batch['input_vector'].to(device)
-            y_pred = model(batch['input_vector'], batch['lengths'])
+            x = batch['input_vector'].to(device)
+            y = batch['label_vector'].to(device)
+            lengths = batch['lengths'].to(device)
+            y_pred = model(x, lengths)
             y_pred = torch.flatten(y_pred, 0, 1)
-            y_actual = torch.flatten(batch['label_vector'], 0, 1)
+            y_actual = torch.flatten(y, 0, 1)
             loss = loss_fn(y_pred,  y_actual)
             total_loss += loss
-            word_count += np.sum(batch['lengths'])
+            word_count += torch.sum(batch['lengths']).item()
         perplexity = np.exp(total_loss / word_count)
         print("perplexity:", perplexity)
         experiment.log_metric("perplexity", perplexity)

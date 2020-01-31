@@ -114,7 +114,9 @@ def test(model, test_dataset, experiment, hyperparams):
             probs = []
             for sentence in batch['sentences']:
                 input_vector = sentence['input_vector']
+                input_vector = input_vector.to(device)
                 length = sentence['length']
+                length = length.to(device)
 
                 # TODO: unsure how this all fits together
                 output = model(input_vector, length)

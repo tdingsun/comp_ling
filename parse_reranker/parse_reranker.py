@@ -65,6 +65,7 @@ def validate(model, validate_loader, experiment, hyperparams):
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     total_loss = 0
     word_count = 0
+    
 
     # Write validating loop
     model = model.eval()
@@ -73,10 +74,16 @@ def validate(model, validate_loader, experiment, hyperparams):
             x = batch['input_vector'].to(device)
             y = batch['label_vector'].to(device)
             lengths = batch['lengths'].to(device)
+
             y_pred = model(x, lengths)
+            print(y.shape)
+            print(y_pred.shape)
             y_pred = torch.flatten(y_pred, 0, 1)
             y_actual = torch.flatten(y, 0, 1)
+      
             loss = loss_fn(y_pred,  y_actual)
+
+            # TODO: loss is correct, but I think im calculating perplexity wrong
             total_loss += loss.item()
             word_count += torch.sum(batch['lengths']).item()
         perplexity = np.exp(total_loss / word_count)
@@ -93,21 +100,47 @@ def test(model, test_dataset, experiment, hyperparams):
     :param experiment: comet.ml experiment object
     :param hyperparams: Hyperparameters dictionary
     """
+    softmax_fn = torch.nn.Softmax(dim=2)
     # TODO: Write testing loops
     model = model.eval()
     with experiment.test():
-        precision = None
-        recall = None
-        f1 = None
+        gold_acc = 0
+        correct_acc = 0
+        total_acc = 0
+        for batch in tqdm(test_dataset):
+            gold_total_tags = batch['gold_total_tags'].item()
+            gold_acc += gold_total_tags
+            # print("gold total tags:", gold_total_tags)
+            probs = []
+            for sentence in batch['sentences']:
+                input_vector = sentence['input_vector']
+                length = sentence['length']
 
-        for batch in tqdm(validate_loader):
-            batch['input_vector'].to(device)
-            y_pred = model(batch['input_vector'], batch['lengths'])
-            y_pred = torch.flatten(y_pred, 0, 1)
-            y_actual = torch.flatten(batch['label_vector'], 0, 1)
-            loss = loss_fn(y_pred,  y_actual)
-            total_loss += loss
-            word_count += np.sum(batch['lengths'])
+                # TODO: unsure how this all fits together
+                output = model(input_vector, length)
+                output = softmax_fn(output)
+
+                product = 1
+
+                for idx in range(length):
+                    prob = output[0, idx, input_vector.view(-1)[idx]]
+                    product *= prob
+                probs.append(product)
+            correct_idx = torch.argmax(torch.tensor(probs))
+            num_correct = int(batch['sentences'][correct_idx]['num_correct'][0])
+            # print(num_correct)
+            num_total = int(batch['sentences'][correct_idx]['total'][0])
+            # print(num_total)
+
+            correct_acc += num_correct
+            total_acc += num_total
+
+
+
+
+        precision = correct_acc / total_acc
+        recall = correc_acc / gold_acc
+        f1 = 2 * ( (precision*recall) / (precision + recall) )
 
         print("precision:", precision)
         print("recall:", recall)
@@ -153,6 +186,7 @@ if __name__ == "__main__":
 
     #for testing
     reranking_dataset = RerankingDataset(args.parse_file, args.gold_file, parse_dataset.word2id)
+    test_dataset = DataLoader(reranking_dataset, batch_size = 1, shuffle=True)
 
     vocab_size = parse_dataset.vocab_size
     model = LSTMLM(

@@ -5,6 +5,7 @@ import numpy as np
 
 PAD_TOKEN = "*PAD*"
 START_TOKEN = "*START*"
+UNK_TOKEN = "*UNK"
 
 class ParsingDataset(Dataset):
     def __init__(self, input_file):
@@ -58,7 +59,6 @@ class ParsingDataset(Dataset):
             self.lengths = torch.tensor(self.lengths)
 
         self.vocab_size = len(self.word2id)
-        print(self.max_seq_len)
 
     def __len__(self):
         """
@@ -99,15 +99,59 @@ class RerankingDataset(Dataset):
         :param word2id: the previous mapping (dictionary) from word to its word
                         id
         """
-        #parse_file: reranker_train
+        #parse_file: conv
         #gold file: gold
         #test parses: conv
         # read the input file line by line and put the lines in a list.
-        # with open(parse_file, 'rt', encoding='latin') as data_file:
-        #     for line in data_file: 
+
+        lines = []
+        with open(parse_file, 'rt', encoding='latin') as data_file:
+            for line in data_file: 
+                tokens = line.strip().split()
+
+                lines.append(tokens)
+        
+        self.gold_total_tags = []
+        with open(gold_file, 'rt', encoding='latin') as data_file:
+            for line in data_file:
+                self.gold_total_tags.append(line.count('('))
 
         
-        # pass
+        max_seq_len = 0
+        self.sentences = []
+        for idx, line in enumerate(lines):
+            if len(line) == 1:
+                num_trees = int(line[0])
+                trees = lines[idx + 1: idx + num_trees + 1]
+                sentence = []
+
+                for tree in trees:
+                    num_correct = tree[0]
+                    total = tree[1]
+                    seq = tree[2:]
+
+                    #replace new tokens with unk
+                    for idx, token in enumerate(seq):
+                        if token not in word2id:
+                            seq[idx] = UNK_TOKEN
+
+                    # input_vector = [word2id[START_TOKEN]] + [word2id[token] for token in seq]
+                    # label_vector = [word2id[token] for token in seq] + [word2id["STOP"]]
+
+                    vector = torch.tensor([word2id[token] for token in seq])
+
+                    parse = {"num_correct": num_correct, "total": total, "input_vector": vector, "length": len(seq)}
+                    sentence.append(parse)
+
+                self.sentences.append(sentence)
+        
+        print(len(self.gold_total_tags))
+        print(len(self.sentences))
+
+
+
+
+
 
     def __len__(self):
         """
@@ -116,7 +160,7 @@ class RerankingDataset(Dataset):
         :return: an integer length of the dataset
         """
         # TODO: Override method to return length of dataset
-        pass
+        return len(self.sentences)
 
     def __getitem__(self, idx):
         """
@@ -127,4 +171,8 @@ class RerankingDataset(Dataset):
         :return: tuple or dictionary of the data
         """
         # TODO: Override method to return the items in dataset
-        pass
+        item = {
+            "sentences": self.sentences[idx],
+            "gold_total_tags": self.gold_total_tags[idx]
+        }
+        return item

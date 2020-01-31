@@ -139,7 +139,7 @@ def test(model, test_dataset, experiment, hyperparams):
 
 
         precision = correct_acc / total_acc
-        recall = correc_acc / gold_acc
+        recall = correct_acc / gold_acc
         f1 = 2 * ( (precision*recall) / (precision + recall) )
 
         print("precision:", precision)

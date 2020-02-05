@@ -119,7 +119,6 @@ def test(model, test_dataset, experiment, hyperparams):
                 # TODO: unsure how this all fits together
                 output = model(input_vector, length)
                 output = softmax_fn(output)
-
                 output, _ = torch.max(output, dim=2)
                 prob = torch.sum(torch.log(output))
                 probs.append(prob)

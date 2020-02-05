@@ -122,7 +122,12 @@ class RerankingDataset(Dataset):
             if len(line) == 1:
                 num_trees = int(line[0])
                 trees = lines[idx + 1: idx + num_trees + 1]
-                sentence = []
+                parses = []
+
+                input_vectors = []
+                lengths = []
+                totals = []
+                num_corrects = []
 
                 for tree in trees:
                     num_correct = tree[0]
@@ -135,10 +140,17 @@ class RerankingDataset(Dataset):
                             seq[idx] = UNK_TOKEN
 
                     vector = torch.tensor([word2id[START_TOKEN]] + [word2id[token] for token in seq])
-                    parse = {"num_correct": num_correct, "total": total, "input_vector": vector, "length": len(seq)}
-                    sentence.append(parse)
+                    input_vectors.append(vector)
+                    lengths.append(len(vector))
+                    totals.append(total)
+                    num_corrects.append(num_correct)
 
-                self.sentences.append(sentence)
+                input_vectors = pad_sequence(input_vectors, batch_first=True)
+                for i in range(len(trees)):
+                    parse = {"num_correct": num_corrects[i], "total": totals[i], "input_vector": input_vectors[i], "length": lengths[i]}
+                    parses.append(parse)
+                    
+                self.sentences.append(parses)
 
 
 

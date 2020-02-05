@@ -76,16 +76,14 @@ def validate(model, validate_loader, experiment, hyperparams):
             lengths = batch['lengths'].to(device)
 
             y_pred = model(x, lengths)
-            print(y.shape)
-            print(y_pred.shape)
             y_pred = torch.flatten(y_pred, 0, 1)
             y_actual = torch.flatten(y, 0, 1)
       
             loss = loss_fn(y_pred,  y_actual)
 
-            # TODO: loss is correct, but I think im calculating perplexity wrong
-            total_loss += loss.item()
-            word_count += torch.sum(batch['lengths']).item()
+            num_words_in_batch = torch.sum(batch['lengths']).item()
+            total_loss += loss.item()*num_words_in_batch
+            word_count += num_words_in_batch
         perplexity = np.exp(total_loss / word_count)
         print("perplexity:", perplexity)
         experiment.log_metric("perplexity", perplexity)
@@ -122,12 +120,13 @@ def test(model, test_dataset, experiment, hyperparams):
                 output = model(input_vector, length)
                 output = softmax_fn(output)
 
-                product = 1
-
-                for idx in range(length):
-                    prob = output[0, idx, input_vector.view(-1)[idx]]
-                    product *= prob
+                prob = torch.sum(torch.log(output))
+                print(prob)
                 probs.append(product)
+                # for idx in range(length):
+                #     prob = output[0, idx, input_vector.view(-1)[idx]]
+                #     product *= prob
+                # probs.append(product)
             correct_idx = torch.argmax(torch.tensor(probs))
             num_correct = int(batch['sentences'][correct_idx]['num_correct'][0])
             # print(num_correct)

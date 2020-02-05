@@ -123,7 +123,8 @@ def test(model, test_dataset, experiment, hyperparams):
                 output, _ = torch.max(output, dim=2)
                 prob = torch.sum(torch.log(output))
                 probs.append(prob)
-            correct_idx = torch.argmax(torch.tensor(probs))
+            correct_idx = torch.argmax(torch.tensor(probs)).item()
+            print(correct_idx)
             num_correct = int(batch['sentences'][correct_idx]['num_correct'][0])
             num_total = int(batch['sentences'][correct_idx]['total'][0])
 

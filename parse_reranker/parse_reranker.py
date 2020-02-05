@@ -122,7 +122,7 @@ def test(model, test_dataset, experiment, hyperparams):
 
                 prob = torch.sum(torch.log(output))
                 print(prob)
-                probs.append(product)
+                probs.append(prob)
                 # for idx in range(length):
                 #     prob = output[0, idx, input_vector.view(-1)[idx]]
                 #     product *= prob

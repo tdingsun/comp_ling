@@ -120,6 +120,7 @@ def test(model, test_dataset, experiment, hyperparams):
                 output = model(input_vector, length)
                 output = softmax_fn(output)
 
+                output, _ = torch.max(output, dim=2)
                 prob = torch.sum(torch.log(output))
                 probs.append(prob)
             correct_idx = torch.argmax(torch.tensor(probs))

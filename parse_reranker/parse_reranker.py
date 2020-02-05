@@ -13,7 +13,7 @@ from tqdm import tqdm  # optional progress bar
 hyperparams = {
     "rnn_size": 64,
     "embedding_size": 64,
-    "num_epochs": 1,
+    "num_epochs": 3,
     "batch_size": 20,
     "learning_rate": 0.001
 }
@@ -121,17 +121,10 @@ def test(model, test_dataset, experiment, hyperparams):
                 output = softmax_fn(output)
 
                 prob = torch.sum(torch.log(output))
-                print(prob)
                 probs.append(prob)
-                # for idx in range(length):
-                #     prob = output[0, idx, input_vector.view(-1)[idx]]
-                #     product *= prob
-                # probs.append(product)
             correct_idx = torch.argmax(torch.tensor(probs))
             num_correct = int(batch['sentences'][correct_idx]['num_correct'][0])
-            # print(num_correct)
             num_total = int(batch['sentences'][correct_idx]['total'][0])
-            # print(num_total)
 
             correct_acc += num_correct
             total_acc += num_total

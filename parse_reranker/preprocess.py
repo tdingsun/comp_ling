@@ -103,7 +103,6 @@ class RerankingDataset(Dataset):
         #gold file: gold
         #test parses: conv
         # read the input file line by line and put the lines in a list.
-
         lines = []
         with open(parse_file, 'rt', encoding='latin') as data_file:
             for line in data_file: 
@@ -135,18 +134,11 @@ class RerankingDataset(Dataset):
                         if token not in word2id:
                             seq[idx] = UNK_TOKEN
 
-                    # input_vector = [word2id[START_TOKEN]] + [word2id[token] for token in seq]
-                    # label_vector = [word2id[token] for token in seq] + [word2id["STOP"]]
-
-                    vector = torch.tensor([word2id[token] for token in seq])
-
+                    vector = torch.tensor([word2id[START_TOKEN]] + [word2id[token] for token in seq])
                     parse = {"num_correct": num_correct, "total": total, "input_vector": vector, "length": len(seq)}
                     sentence.append(parse)
 
                 self.sentences.append(sentence)
-        
-        print(len(self.gold_total_tags))
-        print(len(self.sentences))
 
 
 

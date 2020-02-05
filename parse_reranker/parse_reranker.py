@@ -119,11 +119,16 @@ def test(model, test_dataset, experiment, hyperparams):
                 # TODO: unsure how this all fits together
                 output = model(input_vector, length)
                 output = softmax_fn(output)
-                output, _ = torch.max(output, dim=2)
-                prob = torch.sum(torch.log(output))
+                #the one i want
+
+                log_logits = []
+                for i in range(length-1):
+                    next_word = input_vector[0, i+1]
+                    logit = output[0, i, next_word]
+                    log_logits.append(torch.log(logit))
+                prob = torch.sum(torch.tensor(log_logits))
                 probs.append(prob)
             correct_idx = torch.argmax(torch.tensor(probs)).item()
-            print(correct_idx)
             num_correct = int(batch['sentences'][correct_idx]['num_correct'][0])
             num_total = int(batch['sentences'][correct_idx]['total'][0])
 

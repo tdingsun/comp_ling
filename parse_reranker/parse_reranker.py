@@ -30,11 +30,11 @@ def train(model, train_loader, experiment, hyperparams):
     :param experiment: comet.ml experiment object
     :param hyperparams: hyperparameters dictionary
     """
-    # TODO: Define loss function and optimizer
+    # loss function and optimizer
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
 
-    # TODO: Write training loop
+    # training loop
     model = model.train()
     with experiment.train():
         for e in range(hyperparams["num_epochs"]):
@@ -61,7 +61,7 @@ def validate(model, validate_loader, experiment, hyperparams):
     :param experiment: comet.ml experiment object
     :param hyperparams: hyperparameters dictionary
     """
-    # TODO: Define loss function, total loss, and total word count
+    # loss function, total loss, and total word count
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     total_loss = 0
     word_count = 0
@@ -106,9 +106,7 @@ def test(model, test_dataset, experiment, hyperparams):
         correct_acc = 0
         total_acc = 0
         for batch in tqdm(test_dataset):
-            gold_total_tags = batch['gold_total_tags'].item()
-            gold_acc += gold_total_tags
-            # print("gold total tags:", gold_total_tags)
+            gold_acc += batch['gold_total_tags'].item()
             probs = []
             for sentence in batch['sentences']:
                 input_vector = sentence['input_vector']
@@ -116,10 +114,8 @@ def test(model, test_dataset, experiment, hyperparams):
                 length = sentence['length']
                 length = length.to(device)
 
-                # TODO: unsure how this all fits together
                 output = model(input_vector, length)
                 output = softmax_fn(output)
-                #the one i want
 
                 log_logits = []
                 for i in range(length-1):
@@ -128,15 +124,13 @@ def test(model, test_dataset, experiment, hyperparams):
                     log_logits.append(torch.log(logit))
                 prob = torch.sum(torch.tensor(log_logits))
                 probs.append(prob)
+
             correct_idx = torch.argmax(torch.tensor(probs)).item()
-            num_correct = int(batch['sentences'][correct_idx]['num_correct'][0])
-            num_total = int(batch['sentences'][correct_idx]['total'][0])
+            num_correct = batch['sentences'][correct_idx]['num_correct'].item()
+            num_total = batch['sentences'][correct_idx]['total'].item()
 
             correct_acc += num_correct
             total_acc += num_total
-
-
-
 
         precision = correct_acc / total_acc
         recall = correct_acc / gold_acc

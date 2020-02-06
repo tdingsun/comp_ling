@@ -18,8 +18,6 @@ class ParsingDataset(Dataset):
         :param input_file: the data file pathname
         """
 
-        self.input_sentences = []
-        self.label_sentences = []
         self.input_vectors = []
         self.label_vectors = []
         self.lengths = []
@@ -49,8 +47,6 @@ class ParsingDataset(Dataset):
 
                 self.lengths.append(len(input_seq))
                 self.max_seq_len = max(self.max_seq_len, len(input_seq))
-                self.label_sentences.append(label)
-                self.input_sentences.append(input_seq)
                 self.label_vectors.append(torch.tensor(label_vectorized))
                 self.input_vectors.append(torch.tensor(input_vectorized))
 
@@ -99,9 +95,6 @@ class RerankingDataset(Dataset):
         :param word2id: the previous mapping (dictionary) from word to its word
                         id
         """
-        #parse_file: conv
-        #gold file: gold
-        #test parses: conv
         # read the input file line by line and put the lines in a list.
         lines = []
         with open(parse_file, 'rt', encoding='latin') as data_file:
@@ -130,8 +123,8 @@ class RerankingDataset(Dataset):
                 num_corrects = []
 
                 for tree in trees:
-                    num_correct = tree[0]
-                    total = tree[1]
+                    num_correct = int(tree[0])
+                    total = int(tree[1])
                     seq = tree[2:]
 
                     #replace new tokens with unk

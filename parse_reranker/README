@@ -1,0 +1,36 @@
+Hyperparameters:
+
+    "rnn_size": 64,
+    "embedding_size": 64,
+    "num_epochs": 3,
+    "batch_size": 20,
+    "learning_rate": 0.001
+
+    Rational: I tested rnn_size and embedding_size of 64 and 32, 
+    64 enabled me to achieve a perplexity of around 9.4 and an F1 score of around 0.86.
+    32 gave me worse results, probably because it didn't allow for sufficient complexity of my model.
+    (experiment hash for size 64: d8065a2570fa4dae8a0449a71271b01d)
+    (experiment hash for size 32: 8996795724ee4d2e9b09c6d03d627b1e)
+
+    I started out training with just 1 epoch but only reached a perplexity of ~12, 
+    so I gradually increased the number of epochs until I was able to achieve a good perplexity.
+
+    I didn't experiment that much with Batch size and learning rate. I started with a batch size
+    of 20 and a learning rate of 0.001, and it worked well for me. However, during testing I 
+    had to have a batch size of 1, just because of the way I set up my reranking dataset.
+
+How I used the model to compute the probability for each parse tree:
+
+    Consider a particular parse sequence for a single sentence:
+
+    During the testing loop, I fed in the vector representation of that parse sequence (call this input_vector)
+    into the forward pass of the model and got an output vector of size [sequence/window length] x [vocab size].
+    This represents a probability distribution over the entire vocabulary at each time step / token in the sequence. 
+    For each timestep i, I got the next token at timestep i+1 by indexing input_vector[i+1]. I then got the probability
+    at timestep i that the next token would be input_vector[i+1], by indexing output[i, input_vector[i+1] ]. I repeated 
+    this for all of timesteps, took the log of them, and summed them up. By doing this for every parse, I got the probability
+    of every candidate parse of a particular sentence, and then could just argmax to get the best candidate parse.
+
+
+
+

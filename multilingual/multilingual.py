@@ -13,7 +13,7 @@ from tqdm import tqdm  # optional progress bar
 hyperparams = {
     "rnn_size": 64,  # assuming encoder and decoder use the same rnn_size
     "embedding_size": 64,
-    "num_epochs": 1,
+    "num_epochs": 3,
     "batch_size": 20,
     "learning_rate": 0.001
 }
@@ -63,14 +63,13 @@ def test(model, test_loader, experiment, hyperparams, bpe):
     :param hyperparams: hyperparameters dictionary
     :param bpe: is bpe dataset or not
     """
-    # TODO: Define loss function, total loss, and total word count
+    # Define loss function, total loss, and total word count
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     total_loss = 0
     word_count = 0
     total_wrong = 0
     model = model.eval()
     with experiment.test():
-        # TODO: Write testing loop
         for batch in tqdm(test_loader):
             enc_inputs = batch['enc_input_vector'].to(device)
             dec_inputs = batch['dec_input_vector'].to(device)
@@ -84,21 +83,12 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             total_loss += loss.item()*num_words_in_batch
             word_count += num_words_in_batch
 
-            print(y_pred.shape)
-            print(torch.argmax(y_pred, -1).shape)
-            print(labels.shape)
-
             num_wrong = 0
             for i in range(len(dec_lengths)):
                 diff = torch.argmax(y_pred[i, :], -1)[0:dec_lengths[i]] - labels[i, 0:dec_lengths[i]]
                 num_wrong += np.count_nonzero(diff.cpu())
-            # diff = torch.argmax(y_pred, -1)[0:num_words_in_batch] - labels[:, 0:num_words_in_batch]
-
-            # num_wrong = np.count_nonzero(diff.cpu())
-            print(num_wrong)
-            print(num_words_in_batch)
-
             total_wrong += num_wrong
+
         print(total_wrong)
         print(word_count)
         print(total_wrong / word_count)
@@ -128,11 +118,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     assert len(args.corpus_files) == len(args.multilingual_tags)
 
-    # TODO: Make sure you modify the `.comet.config` file
+    # Make sure you modify the `.comet.config` file
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)
 
-    # TODO: Load dataset
+    # Load dataset
     # Hint: Use random_split to split dataset into train and validate datasets
     # Hint: Use ConcatDataset to concatenate datasets
     # Hint: Make sure encoding and decoding lengths match for the datasets

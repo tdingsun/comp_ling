@@ -42,7 +42,7 @@ class LSTMLM(nn.Module):
         embeds = self.embeddings(inputs) #output size: batchsize x max_seq_len x embedding_len
         packed_input = pack_padded_sequence(embeds, lengths, batch_first=True, enforce_sorted=False)
         lstm_out, _ = self.lstm(packed_input)
-        output, _ = pad_packed_sequence(lstm_out, batch_first=True, total_length=total_length)
+        output, _ = pad_packed_sequence(lstm_out, batch_first=True, total_length=total_length, padding_value=0)
         logits = self.dense(output)
         return logits #batch size, window size, vocab size
         # make sure you use pack_padded_sequence and pad_padded_sequence to

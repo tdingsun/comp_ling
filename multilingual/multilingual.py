@@ -87,8 +87,16 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             print(y_pred.shape)
             print(torch.argmax(y_pred, -1).shape)
             print(labels.shape)
-            diff = torch.argmax(y_pred, -1)[0:num_words_in_batch] - labels[:, 0:num_words_in_batch]
-            num_wrong = np.count_nonzero(diff.cpu())
+
+            num_wrong = 0
+            for i in range(len(batch)):
+                print(i)
+                print(len(batch))
+                diff = torch.argmax(y_pred[i, :], -1)[0:num_words_in_batch[i, :]] - labels[i, 0:num_words_in_batch[i, :]]
+                num_wrong += np.count_nonzero(diff.cpu())
+            # diff = torch.argmax(y_pred, -1)[0:num_words_in_batch] - labels[:, 0:num_words_in_batch]
+
+            # num_wrong = np.count_nonzero(diff.cpu())
             print(num_wrong)
             print(num_words_in_batch)
 

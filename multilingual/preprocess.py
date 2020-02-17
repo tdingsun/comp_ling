@@ -55,8 +55,6 @@ class TranslationDataset(Dataset):
             if target not in self.enc_word2id:
                 self.enc_word2id[target] = enc_curr_id
                 enc_curr_id += 1
-        print(self.target)
-        print(self.enc_word2id[self.target])
         if bpe:
             en_lines, fr_lines = read_from_corpus(input_file)
             for line in en_lines:

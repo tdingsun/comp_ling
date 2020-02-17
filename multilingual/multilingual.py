@@ -90,7 +90,7 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             print(torch.argmax(y_pred, -1))
             print(y_actual.shape)
             print(y_actual)
-            diff = torch.argmax(y_pred, -1)[0:num_words_in_batch, :] - y_actual[0:num_words_in_batch, :]
+            diff = torch.argmax(y_pred, -1)[0:num_words_in_batch] - y_actual[0:num_words_in_batch]
             print(diff)
             num_wrong = np.count_nonzero(diff.cpu())
             total_wrong += num_wrong

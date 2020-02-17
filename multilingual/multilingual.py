@@ -85,9 +85,7 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             num_words_in_batch = torch.sum(batch['dec_input_lengths']).item()
             total_loss += loss.item()*num_words_in_batch
             word_count += num_words_in_batch
-            print(y_pred.shape)
-            print(y_actual.shape)
-            diff = y_pred - y_actual
+            diff = torch.max(y_pred, 1) - y_actual
             num_wrong = np.count_nonzero(diff)
             total_wrong += num_wrong
         perplexity = np.exp(total_loss / word_count)

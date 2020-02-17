@@ -89,7 +89,9 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             print(labels.shape)
             diff = torch.argmax(y_pred, -1)[0:num_words_in_batch] - labels[:, 0:num_words_in_batch]
             num_wrong = np.count_nonzero(diff.cpu())
-            
+            print(num_wrong)
+            print(num_words_in_batch)
+
             total_wrong += num_wrong
         perplexity = np.exp(total_loss / word_count)
         accuracy = 1 - (total_wrong / word_count)

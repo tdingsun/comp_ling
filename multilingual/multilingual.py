@@ -93,6 +93,9 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             print(num_words_in_batch)
 
             total_wrong += num_wrong
+        print(total_wrong)
+        print(word_count)
+        print(total_wrong / word_count)
         perplexity = np.exp(total_loss / word_count)
         accuracy = 1 - (total_wrong / word_count)
         print("perplexity:", perplexity)

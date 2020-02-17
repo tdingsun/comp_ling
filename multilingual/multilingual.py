@@ -1,5 +1,5 @@
 from comet_ml import Experiment
-from preprocess import preprocess_vanilla, TranslationDataset
+from preprocess import preprocess_vanilla, TranslationDataset, read_from_corpus
 from model import Seq2Seq
 from torch.utils.data import DataLoader, random_split, ConcatDataset
 from torch import nn, optim
@@ -11,11 +11,11 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "rnn_size": None,  # assuming encoder and decoder use the same rnn_size
-    "embedding_size": None,
-    "num_epochs": None,
-    "batch_size": None,
-    "learning_rate": None
+    "rnn_size": 32,  # assuming encoder and decoder use the same rnn_size
+    "embedding_size": 32,
+    "num_epochs": 1,
+    "batch_size": 1,
+    "learning_rate": 0.001
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -31,12 +31,27 @@ def train(model, train_loader, experiment, hyperparams, bpe):
     :param bpe: is bpe dataset or not
     """
     # TODO: Define loss function and optimizer
-
+    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
     model = model.train()
     with experiment.train():
         # TODO: Write training loop
-        pass
-
+        for e in range(hyperparams["num_epochs"]):
+            for batch in tqdm(train_loader):
+                enc_inputs = batch['enc_input_vector'].to(device)
+                dec_inputs = batch['dec_input_vector'].to(device)
+                labels = batch['label_vector'].to(device)
+                
+                enc_lengths = batch['enc_input_lengths'].to(device)
+                dec_lengths = batch['dec_input_lengths'].to(device)
+                
+                optimizer.zero_grad()
+                y_pred = model(enc_inputs, dec_inputs, enc_lengths, dec_lengths)
+                y_pred = torch.flatten(y_pred, 0, 1)
+                y_actual = torch.flatten(labels, 0, 1)
+                loss = loss_fn(y_pred, y_actual)
+                loss.backward()
+                optimizer.step()
 
 def test(model, test_loader, experiment, hyperparams, bpe):
     """
@@ -88,12 +103,45 @@ if __name__ == "__main__":
     # Hint: Make sure encoding and decoding lengths match for the datasets
     data_tags = list(zip(args.corpus_files, args.multilingual_tags))
 
+    enc_seq_len = 0
+    dec_seq_len = 0
+    for input_file, tag in data_tags:
+        en_lns, fr_lns = read_from_corpus(input_file)
+        en_max = len(max(en_lns, key = lambda i: len(i)))
+        enc_seq_len = max(enc_seq_len, en_max)
+        fr_max = len(max(fr_lns, key = lambda i: len(i)))
+        dec_seq_len = max(dec_seq_len, fr_max)
+
+
+    vocab_size = 0
+    output_size = 0
+
+    enc_word2id = ({}, 0)
+    datasets = []
+    for input_file, tag in data_tags:
+        d = TranslationDataset(input_file, enc_seq_len, dec_seq_len, args.bpe, tag, enc_word2id)
+        enc_word2id = (d.enc_word2id, d.enc_vocab_size)
+
+        vocab_size = max(vocab_size, d.enc_vocab_size)
+        output_size = max(output_size, d.dec_vocab_size)
+        datasets.append(d)
+    
+    combined_dataset = ConcatDataset(datasets)
+    test_size = len(combined_dataset)//10
+    train_size = len(combined_dataset) - test_size
+    train_subset, test_subset = random_split(combined_dataset, (train_size, test_size))
+    train_loader = DataLoader(train_subset, batch_size = hyperparams['batch_size'], shuffle=True)
+    test_dataset = DataLoader(test_subset, batch_size = hyperparams['batch_size'], shuffle=True)
+
+
+
     model = Seq2Seq(
         vocab_size,
         hyperparams["rnn_size"],
         hyperparams["embedding_size"],
         output_size,
-        max_length,
+        enc_seq_len,
+        dec_seq_len,
         args.bpe
     ).to(device)
 

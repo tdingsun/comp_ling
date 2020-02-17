@@ -8,6 +8,10 @@ import re
 from collections import defaultdict
 from tqdm import tqdm  # optional progress bar
 
+PAD_TOKEN = "*PAD*"
+START_TOKEN = "*START*"
+UNK_TOKEN = "UNK"
+STOP_TOKEN = "*STOP*"
 
 class TranslationDataset(Dataset):
     def __init__(self, input_file, enc_seq_len, dec_seq_len,
@@ -26,14 +30,109 @@ class TranslationDataset(Dataset):
         :param word2id: the word2id to append upon
         """
         # TODO: read the input file line by line and put the lines in a list.
-
         # TODO: split the whole file (including both training and validation
         # data) into words and create the corresponding vocab dictionary.
 
         # TODO: create inputs and labels for both training and validation data
         #       and make sure you pad your inputs.
+        self.enc_input_vectors = []
+        self.dec_input_vectors = []
+        self.label_vectors = []
+        self.enc_input_lengths = []
+        self.dec_input_lengths = []
 
+        enc_curr_id = word2id[1]
+        dec_curr_id = word2id[1]
+        self.enc_word2id = word2id[0]
+        self.dec_word2id = word2id[0]
+        if enc_curr_id == 0:
+            self.enc_word2id = {PAD_TOKEN: 0, START_TOKEN: 1, STOP_TOKEN: 2}
+            self.dec_word2id = {PAD_TOKEN: 0, START_TOKEN: 1, STOP_TOKEN: 2}
+            enc_curr_id = 3
+            dec_curr_id = 3
+
+        self.target = START_TOKEN
+        if target != None:
+            self.target = target
+            if target not in self.enc_word2id:
+                self.enc_word2id[target] = enc_curr_id
+                enc_curr_id += 1
+
+        if bpe:
+            en_lines, fr_lines = read_from_corpus(input_file)
+            for line in en_lines:
+                label = line + [STOP_TOKEN]
+
+                label_vector = []
+                for word in label:
+                    if word not in self.enc_word2id:
+                        self.enc_word2id[word] = enc_curr_id
+                        enc_curr_id += 1
+                    label_vector.append(self.enc_word2id[word])
+                dec_input_vector = [self.enc_word2id[self.target]] + label_vector[:-1]
+
+                self.dec_input_lengths.append(len(dec_input_vector))
+                self.label_vectors.append(torch.tensor(label_vector))
+                self.dec_input_vectors.append(torch.tensor(dec_input_vector))
+
+            for line in fr_lines:
+                enc_input_seq = [self.target] + line
+
+                enc_input_vector = []
+                for word in enc_input_seq:
+                    if word not in self.enc_word2id:
+                        self.enc_word2id[word] = enc_curr_id
+                        enc_curr_id += 1
+                    enc_input_vector.append(self.enc_word2id[word])
+
+                self.enc_input_lengths.append(len(enc_input_vector))
+                self.enc_input_vectors.append(torch.tensor(enc_input_vector))
+
+
+        else:
+            en_lines, fr_lines = preprocess_vanilla(input_file)
+            for line in en_lines:
+                label = line + [STOP_TOKEN]
+
+                label_vector = []
+                for word in label:
+                    if word not in self.dec_word2id:
+                        self.dec_word2id[word] = dec_curr_id
+                        dec_curr_id += 1
+                    label_vector.append(self.dec_word2id[word])
+                dec_input_vector = [self.dec_word2id[self.target]] + label_vector[:-1]
+
+                self.dec_input_lengths.append(len(dec_input_vector))
+                self.label_vectors.append(torch.tensor(label_vector))
+                self.dec_input_vectors.append(torch.tensor(dec_input_vector))
+
+            for line in fr_lines:
+                enc_input_seq = [self.target] + line
+
+                enc_input_vector = []
+                for word in enc_input_seq:
+                    if word not in self.enc_word2id:
+                        self.enc_word2id[word] = enc_curr_id
+                        enc_curr_id += 1
+                    enc_input_vector.append(self.enc_word2id[word])
+
+                self.enc_input_lengths.append(len(enc_input_vector))
+                self.enc_input_vectors.append(torch.tensor(enc_input_vector))
+
+        dec_first_pad = torch.zeros(dec_seq_len - len(self.dec_input_vectors[0]), dtype=torch.long)
+        enc_first_pad = torch.zeros(enc_seq_len - len(self.enc_input_vectors[0]), dtype=torch.long)
+        self.dec_input_vectors[0] = torch.cat((self.dec_input_vectors[0], dec_first_pad))
+        self.enc_input_vectors[0] = torch.cat((self.enc_input_vectors[0],enc_first_pad))
+        self.label_vectors[0] = torch.cat((self.label_vectors[0], dec_first_pad))
+        self.label_vectors = pad_sequence(self.label_vectors, batch_first=True)
+        self.dec_input_vectors = pad_sequence(self.dec_input_vectors, batch_first=True)
+        self.enc_input_vectors = pad_sequence(self.enc_input_vectors, batch_first=True)
+        self.dec_input_lengths = torch.tensor(self.dec_input_lengths)
+        self.enc_input_lengths = torch.tensor(self.enc_input_lengths)
+        #teacher forcing :  use english lines to make labels. 
         # Hint: remember to add start and pad to create inputs and labels
+        self.enc_vocab_size = len(self.enc_word2id)
+        self.dec_vocab_size = len(self.dec_word2id)
 
     def __len__(self):
         """
@@ -41,8 +140,8 @@ class TranslationDataset(Dataset):
 
         :return: an integer length of the dataset
         """
-        # TODO: Override method to return length of dataset
-        pass
+        # Override method to return length of dataset
+        return len(self.dec_input_vectors)
 
     def __getitem__(self, idx):
         """
@@ -54,8 +153,15 @@ class TranslationDataset(Dataset):
 
         :return: tuple or dictionary of the data
         """
-        # TODO: Override method to return the items in dataset
-        pass
+        # Override method to return the items in dataset
+        item = {
+            "enc_input_vector": self.enc_input_vectors[idx],
+            "dec_input_vector": self.dec_input_vectors[idx],
+            "label_vector": self.label_vectors[idx],
+            "enc_input_lengths": self.enc_input_lengths[idx],
+            "dec_input_lengths": self.dec_input_lengths[idx]
+        }
+        return item
 
 
 def learn_bpe(train_file, iterations):
@@ -74,9 +180,39 @@ def learn_bpe(train_file, iterations):
 
     :return: vocabulary dictionary learned using BPE
     """
-    # TODO: Please implement the BPE algorithm.
-    pass
+    # Please implement the BPE algorithm.
+    vocab = defaultdict(lambda: 0)
+    with open(train_file, 'rt') as data_file:
+        for line in data_file:
+            l = unicodedata.normalize("NFKC", line)
+            words = re.split(r'(\s+)', l.strip())
+            for word in words:
+                word = " ".join(word)
+                vocab[word] += 1
+    
+    for i in tqdm(range(iterations)):
+        pairs = get_stats(vocab)
+        best = max(pairs, key=pairs.get)
+        vocab = merge_vocab(best, vocab)
 
+    return(vocab)
+
+def get_stats(vocab):
+    pairs = defaultdict(int)
+    for word, freq in vocab.items():
+        symbols = word.split()
+        for i in range(len(symbols)-1):
+            pairs[symbols[i], symbols[i+1]] += freq
+    return pairs
+
+def merge_vocab(pair, v_in):
+    v_out = {}
+    bigram = re.escape(' '.join(pair))
+    p = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
+    for word in v_in:
+        w_out = p.sub(''.join(pair), word)
+        v_out[w_out] = v_in[word]
+    return v_out
 
 def get_transforms(vocab):
     """
@@ -107,8 +243,8 @@ def apply_bpe(train_file, bpe_file, vocab):
     with open(train_file) as r, open(bpe_file, 'w') as w:
         transforms = get_transforms(vocab)
         for line in r:
-            line = unicodedata.normalize("NFKC", line)
-            words = re.split(r'(\s+)', line.strip())
+            l = unicodedata.normalize("NFKC", line)
+            words = re.split(r'(\s+)', l.strip())
             bpe_str = ""
             for word in words:
                 if word.isspace():

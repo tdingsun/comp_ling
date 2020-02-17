@@ -64,11 +64,33 @@ def test(model, test_loader, experiment, hyperparams, bpe):
     :param bpe: is bpe dataset or not
     """
     # TODO: Define loss function, total loss, and total word count
-
+    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+    total_loss = 0
+    word_count = 0
+    total_wrong = 0
     model = model.eval()
     with experiment.test():
         # TODO: Write testing loop
+        for batch in tqdm(test_loader):
+            enc_inputs = batch['enc_input_vector'].to(device)
+            dec_inputs = batch['dec_input_vector'].to(device)
+            labels = batch['label_vector'].to(device)
+            
+            enc_lengths = batch['enc_input_lengths'].to(device)
+            dec_lengths = batch['dec_input_lengths'].to(device)
+            y_pred = model(enc_inputs, dec_inputs, enc_lengths, dec_lengths)
+            y_pred = torch.flatten(y_pred, 0, 1)
+            y_actual = torch.flatten(labels, 0, 1)
+            loss = loss_fn(y_pred, y_actual)
+            num_words_in_batch = torch.sum(batch['lengths']).item()
+            total_loss += loss.item()*num_words_in_batch
+            word_count += num_words_in_batch
 
+            diff = y_pred - y_actual
+            num_wrong = np.count_nonzero(diff)
+            total_wrong += num_wrong
+        perplexity = np.exp(total_loss / word_count)
+        accuracy = 1 - (total_wrong / word_count)
         print("perplexity:", perplexity)
         print("accuracy:", accuracy)
         experiment.log_metric("perplexity", perplexity)

@@ -82,7 +82,7 @@ def test(model, test_loader, experiment, hyperparams, bpe):
             y_pred = torch.flatten(y_pred, 0, 1)
             y_actual = torch.flatten(labels, 0, 1)
             loss = loss_fn(y_pred, y_actual)
-            num_words_in_batch = torch.sum(batch['lengths']).item()
+            num_words_in_batch = torch.sum(batch['dec_input_lengths']).item()
             total_loss += loss.item()*num_words_in_batch
             word_count += num_words_in_batch
 

@@ -11,10 +11,10 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "rnn_size": 64,  # assuming encoder and decoder use the same rnn_size
-    "embedding_size": 64,
-    "num_epochs": 3,
-    "batch_size": 20,
+    "rnn_size": 32,  # assuming encoder and decoder use the same rnn_size
+    "embedding_size": 512,
+    "num_epochs": 1,
+    "batch_size": 256,
     "learning_rate": 0.001
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

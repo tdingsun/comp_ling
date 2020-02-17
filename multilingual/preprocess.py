@@ -42,14 +42,12 @@ class TranslationDataset(Dataset):
         self.dec_input_lengths = []
 
         enc_curr_id = word2id[1]
-        dec_curr_id = word2id[1]
         self.enc_word2id = word2id[0]
-        self.dec_word2id = word2id[0]
         if enc_curr_id == 0:
             self.enc_word2id = {PAD_TOKEN: 0, START_TOKEN: 1, STOP_TOKEN: 2}
-            self.dec_word2id = {PAD_TOKEN: 0, START_TOKEN: 1, STOP_TOKEN: 2}
             enc_curr_id = 3
-            dec_curr_id = 3
+        self.dec_word2id = {PAD_TOKEN: 0, START_TOKEN: 1, STOP_TOKEN: 2}
+        dec_curr_id = 3
 
         self.target = START_TOKEN
         if target != None:
@@ -57,7 +55,8 @@ class TranslationDataset(Dataset):
             if target not in self.enc_word2id:
                 self.enc_word2id[target] = enc_curr_id
                 enc_curr_id += 1
-
+        print(self.target)
+        print(self.enc_word2id[self.target])
         if bpe:
             en_lines, fr_lines = read_from_corpus(input_file)
             for line in en_lines:
@@ -76,6 +75,7 @@ class TranslationDataset(Dataset):
                 self.dec_input_vectors.append(torch.tensor(dec_input_vector))
 
             for line in fr_lines:
+
                 enc_input_seq = [self.target] + line
 
                 enc_input_vector = []
@@ -119,10 +119,13 @@ class TranslationDataset(Dataset):
                 self.enc_input_lengths.append(len(enc_input_vector))
                 self.enc_input_vectors.append(torch.tensor(enc_input_vector))
 
+
         dec_first_pad = torch.zeros(dec_seq_len - len(self.dec_input_vectors[0]), dtype=torch.long)
         enc_first_pad = torch.zeros(enc_seq_len - len(self.enc_input_vectors[0]), dtype=torch.long)
+
         self.dec_input_vectors[0] = torch.cat((self.dec_input_vectors[0], dec_first_pad))
-        self.enc_input_vectors[0] = torch.cat((self.enc_input_vectors[0],enc_first_pad))
+        self.enc_input_vectors[0] = torch.cat((self.enc_input_vectors[0], enc_first_pad))
+        
         self.label_vectors[0] = torch.cat((self.label_vectors[0], dec_first_pad))
         self.label_vectors = pad_sequence(self.label_vectors, batch_first=True)
         self.dec_input_vectors = pad_sequence(self.dec_input_vectors, batch_first=True)
@@ -133,6 +136,7 @@ class TranslationDataset(Dataset):
         # Hint: remember to add start and pad to create inputs and labels
         self.enc_vocab_size = len(self.enc_word2id)
         self.dec_vocab_size = len(self.dec_word2id)
+
 
     def __len__(self):
         """

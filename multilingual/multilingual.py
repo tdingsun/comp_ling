@@ -11,10 +11,10 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "rnn_size": 32,  # assuming encoder and decoder use the same rnn_size
-    "embedding_size": 512,
+    "rnn_size": 64,  # assuming encoder and decoder use the same rnn_size
+    "embedding_size": 64,
     "num_epochs": 1,
-    "batch_size": 256,
+    "batch_size": 64,
     "learning_rate": 0.001
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -132,11 +132,12 @@ if __name__ == "__main__":
     dec_seq_len = 0
     for input_file, tag in data_tags:
         en_lns, fr_lns = read_from_corpus(input_file)
-        en_max = len(max(en_lns, key = lambda i: len(i)))
-        enc_seq_len = max(enc_seq_len, en_max)
-        fr_max = len(max(fr_lns, key = lambda i: len(i)))
-        dec_seq_len = max(dec_seq_len, fr_max)
-
+        dec_max = len(max(en_lns, key = lambda i: len(i)))
+        dec_seq_len = max(dec_seq_len, dec_max)
+        enc_max = len(max(fr_lns, key = lambda i: len(i)))
+        enc_seq_len = max(enc_seq_len, enc_max)
+    enc_seq_len += 1
+    dec_seq_len += 1
 
     vocab_size = 0
     output_size = 0

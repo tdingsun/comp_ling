@@ -1,0 +1,54 @@
+Hyperparameters used:
+
+"rnn_size": 64,
+"embedding_size": 64,
+"num_epochs": 3,
+"batch_size": 20,
+"learning_rate": 0.001
+
+I experimented with a couple of different rnn and embedding sizes, and setting them both to 64 resulted in the highest accuracy for me. 
+
+I trained for 3 epochs, because any more training after that resulted in marginal benefits.
+
+Advantages and Disadvantages of BPE vs traditional methods:
+
+Using the BPE input definitely resulted in a greater accuracy, however it did take longer to train because the average token length (characters or combined characters) is shorter than the average token length (words) in tradition methods. It also requires more preprocessing time in order to byte-pair encode a corpus.
+
+
+Experiments:
+______
+
+vanilla model: https://www.comet.ml/siy3udd6/multilingual/dde12cf3560f412097559e106c4bc316
+
+python multilingual.py -Tt -f eng-fraS.txt
+
+Accuracy: 0.57
+Perplexity: 9.36
+
+______
+
+BPE french to english (rnn_size and embedding_size of 64): https://www.comet.ml/siy3udd6/multilingual/e27e9c86c793460883c6e1c2d0ab611f
+
+python multilingual.py -Ttb -f bpe-eng-fraS.txt
+
+Accuracy: 0.71
+Perplexity: 4.75
+______
+
+BPE french to english (rnn_size and embedding_size of 32): https://www.comet.ml/siy3udd6/multilingual/b60f5bd51f8f466eb6e4ee491195d739
+
+
+Accuracy: 0.67
+Perplexity: 6.43
+
+______
+
+BPE multilingual: https://www.comet.ml/siy3udd6/multilingual/c8a1c2f773764c9a922c0e7005c894f8
+
+python multilingual.py -Ttb -f joint-bpe-eng-fraS.txt joint-bpe-eng-deuS.txt -m "<2fr>" "<2de>"
+
+Accuracy: 0.71
+Perplexity: 4.70
+
+______
+

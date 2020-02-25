@@ -11,11 +11,11 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "rnn_size": 64,  # assuming encoder and decoder use the same rnn_size
+    "rnn_size": 128,  # assuming encoder and decoder use the same rnn_size
     "embedding_size": 128,
     "num_epochs": 1,
     "batch_size": 20,
-    "learning_rate": 0.001
+    "learning_rate": 0.0015
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -117,8 +117,14 @@ if __name__ == "__main__":
                         help="target tags for translation")
     parser.add_argument("-z", "--zeroshot", action="store_true",
                         help="zeroshot translation")
+    parser.add_argument("-r", "--rnnsize", nargs=1, default=64)
+    parser.add_argument("-e", "--embedding", nargs=1, default=64)
     args = parser.parse_args()
 
+    print(args.rnnsize)
+    print(args.embedding)
+    hyperparams["rnn_size"] = args.rnnsize
+    hyperparams["embedding_size"] = args.embedding
     # Make sure you modify the `.comet.config` file
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)

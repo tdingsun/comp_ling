@@ -26,13 +26,14 @@ class Seq2Seq(nn.Module):
         self.vocab_size = vocab_size
         self.rnn_size = rnn_size
         self.embedding_size = embedding_size
+        self.hidden_size = 512
 
         # TODO: initialize embeddings, LSTM, and linear layers
         self.embedding = nn.Embedding(vocab_size, embedding_size)
         self.encoder = nn.LSTM(embedding_size, rnn_size, batch_first=True)
         self.decoder = nn.LSTM(embedding_size, rnn_size, batch_first=True)
-        self.dense = nn.Linear(rnn_size, vocab_size)
-
+        self.dense = nn.Linear(rnn_size, self.hidden_size)
+        self.dense2 = nn.Linear(self.hidden_size, vocab_size)
 
     def forward(self, encoder_inputs, decoder_inputs, encoder_lengths,
                 decoder_lengths):
@@ -63,6 +64,7 @@ class Seq2Seq(nn.Module):
         output, _ = pad_packed_sequence(dec_out, batch_first=True, total_length=total_length)
 
         logits = self.dense(output)
+        logits = self.dense2(logits)
         return logits
         # make sure you use pack_padded_sequence and pad_padded_sequence to
         # reduce calculation

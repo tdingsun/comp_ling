@@ -120,7 +120,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--rnnsize", nargs=1, default=64)
     parser.add_argument("-e", "--embedding", nargs=1, default=64)
     args = parser.parse_args()
-
+    print(args)
     print(args.rnnsize[0])
     print(args.embedding[0])
     hyperparams["rnn_size"] = args.rnnsize[0]

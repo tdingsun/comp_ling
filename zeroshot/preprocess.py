@@ -55,8 +55,6 @@ class TranslationDataset(Dataset):
         if ztest:
             _, enc_lines = read_from_corpus(input_file)
             _, dec_lines = read_from_corpus(target_input_file)
-            print(enc_lines[0])
-            print(dec_lines[0])
         else:
             enc_lines, dec_lines = read_from_corpus(input_file)
             if flip:
@@ -112,8 +110,6 @@ class TranslationDataset(Dataset):
 
         self.vocab_size = len(self.word2id)
         # Hint: remember to add start and pad to create inputs and labels
-        print(dec_seq_len)
-        print(self.dec_input_vectors.shape)
 
     def __len__(self):
         """

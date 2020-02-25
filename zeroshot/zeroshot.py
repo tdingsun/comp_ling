@@ -121,10 +121,10 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--embedding", type=int, nargs=1, default=64)
     args = parser.parse_args()
 
-    print(args.rnnsize)
-    print(args.embedding)
-    hyperparams["rnn_size"] = args.rnnsize
-    hyperparams["embedding_size"] = args.embedding
+    print(args.rnnsize[0])
+    print(args.embedding[0])
+    hyperparams["rnn_size"] = args.rnnsize[0]
+    hyperparams["embedding_size"] = args.embedding[0]
     # Make sure you modify the `.comet.config` file
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)

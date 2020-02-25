@@ -117,14 +117,14 @@ if __name__ == "__main__":
                         help="target tags for translation")
     parser.add_argument("-z", "--zeroshot", action="store_true",
                         help="zeroshot translation")
-    parser.add_argument("-r", "--rnnsize", nargs=1, default=64)
-    parser.add_argument("-e", "--embedding", nargs=1, default=64)
+    parser.add_argument("-r", "--rnnsize", type=int, nargs=1, default=64)
+    parser.add_argument("-e", "--embedding", type=int, nargs=1, default=64)
     args = parser.parse_args()
 
-    print(args.rnnsize)
-    print(args.embedding)
-    hyperparams["rnn_size"] = args.rnnsize
-    hyperparams["embedding_size"] = args.embedding
+    print(args.rnnsize[0])
+    print(args.embedding[0])
+    hyperparams["rnn_size"] = args.rnnsize[0]
+    hyperparams["embedding_size"] = args.embedding[0]
     # Make sure you modify the `.comet.config` file
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)

@@ -15,7 +15,8 @@ STOP_TOKEN = "*STOP*"
 
 class TranslationDataset(Dataset):
     def __init__(self, input_file, enc_seq_len, dec_seq_len,
-                 bpe=True, target=None, word2id=None, flip=False):
+                 bpe=True, target=None, word2id=None, flip=False,
+                 target_input_file=None, ztest=False):
         """
         Read and parse the translation dataset line by line. Make sure you
         separate them on tab to get the original sentence and the target
@@ -36,22 +37,30 @@ class TranslationDataset(Dataset):
         self.enc_input_lengths = []
         self.dec_input_lengths = []
 
-        curr_id = enc_word2id[1]
-        self.word2id = enc_word2id[0]
+        curr_id = word2id[1]
+        self.word2id = word2id[0]
 
         if curr_id == 0:
             self.word2id = {PAD_TOKEN: 0, START_TOKEN: 1, STOP_TOKEN: 2}
             curr_id = 3
 
         self.target = target
-        if target not in self.enc_word2id:
+        if target not in self.word2id:
             self.word2id[target] = curr_id
             curr_id += 1
 
         # read the input file line by line and put the lines in a list.
-        enc_lines, dec_lines = read_from_corpus(input_file)
-        if flip:
-            enc_lines, dec_lines = dec_lines, enc_lines
+
+
+        if ztest:
+            _, enc_lines = read_from_corpus(input_file)
+            _, dec_lines = read_from_corpus(target_input_file)
+            print(enc_lines[0])
+            print(dec_lines[0])
+        else:
+            enc_lines, dec_lines = read_from_corpus(input_file)
+            if flip:
+                enc_lines, dec_lines = dec_lines, enc_lines
 
         # split the whole file (including both training and validation
         # data) into words and create the corresponding vocab dictionary.
@@ -103,6 +112,8 @@ class TranslationDataset(Dataset):
 
         self.vocab_size = len(self.word2id)
         # Hint: remember to add start and pad to create inputs and labels
+        print(dec_seq_len)
+        print(self.dec_input_vectors.shape)
 
     def __len__(self):
         """

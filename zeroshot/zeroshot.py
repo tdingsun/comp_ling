@@ -1,5 +1,5 @@
 from comet_ml import Experiment
-from preprocess import preprocess_vanilla, TranslationDataset, read_from_corpus
+from preprocess import TranslationDataset, read_from_corpus
 from model import Seq2Seq
 from torch.utils.data import DataLoader, random_split, ConcatDataset
 from torch import nn, optim
@@ -127,16 +127,21 @@ if __name__ == "__main__":
     # Hint: Use random_split to split dataset into train and validate datasets
     # Hint: Use ConcatDataset to concatenate datasets
     # Hint: Make sure encoding and decoding lengths match for the datasets
-    data_tags = list(zip(args.corpus_files, args.multilingual_tags, [True, False, False, False]))
+    if args.zeroshot:
+        data_tags = list(zip(args.corpus_files, args.multilingual_tags, [True, False, False, False]))
+    else:
+        data_tags = list(zip(args.corpus_files, args.multilingual_tags, [False, False]))
     
     #finding max encoder sequence length and decoder sequence length
     enc_seq_len = 0
     dec_seq_len = 0
     for input_file, tag, flip in data_tags:
-        en_lns, fr_lns = read_from_corpus(input_file)
-        dec_max = len(max(en_lns, key = lambda i: len(i)))
+        enc_lns, dec_lns = read_from_corpus(input_file)
+        if flip:
+            enc_lns, dec_lns = dec_lns, enc_lns
+        dec_max = len(max(dec_lns, key = lambda i: len(i)))
         dec_seq_len = max(dec_seq_len, dec_max)
-        enc_max = len(max(fr_lns, key = lambda i: len(i)))
+        enc_max = len(max(enc_lns, key = lambda i: len(i)))
         enc_seq_len = max(enc_seq_len, enc_max)
     enc_seq_len += 2
     dec_seq_len += 2
@@ -156,6 +161,15 @@ if __name__ == "__main__":
             word2id = (d.word2id, d.vocab_size)
             vocab_size = max(vocab_size, d.vocab_size)
             datasets.append(d)
+        train_loader = DataLoader(ConcatDataset(datasets), batch_size=hyperparams['batch_size'], shuffle=True)
+
+        #test files
+        source_input = data_tags[2]
+        target_input = data_tags[3]
+        d = TranslationDataset(source_input[0], enc_seq_len, dec_seq_len, args.bpe, target_input[1], word2id, flip=False, target_input_file=target_input[0], ztest=True)
+        word2id = (d.word2id, d.vocab_size)
+        vocab_size = max(vocab_size, d.vocab_size)
+        test_dataset = DataLoader(d, batch_size=hyperparams['batch_size'], shuffle=True)
 
     else:
         for input_file, tag, flip in data_tags:
@@ -174,7 +188,6 @@ if __name__ == "__main__":
         test_dataset = DataLoader(test_subset, batch_size = hyperparams['batch_size'], shuffle=True)
 
     model = Seq2Seq(
-        # Fill this initiator
         vocab_size,
         hyperparams["rnn_size"],
         hyperparams["embedding_size"],

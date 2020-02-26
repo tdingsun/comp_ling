@@ -1,0 +1,49 @@
+Commands:
+
+    English to French:
+    python zeroshot.py -Ttb -f joint-bpe-eng-fraS.txt -m "<2fr>"
+
+    English to German:
+    python zeroshot.py -Ttb -f joint-bpe-eng-deuS.txt -m "<2de>"
+
+    One to Many: English to French/German
+    python zeroshot.py -Ttb -f joint-bpe-eng-fraS.txt joint-bpe-eng-deuS.txt -m "<2fr>" "<2de>"
+
+    Zeroshot German to French
+    python zeroshot.py -Ttbz -f dattrainED.txt dattrainEF.txt dattestED.txt dattestEF.txt -m "<2en>" "<2fr>" "<2fr>" "<2fr>"
+
+Hyperparameters:
+    "rnn_size": 1024,
+    "embedding_size": 64,
+    "num_epochs": 3,
+    "batch_size": 20,
+    "learning_rate": 0.001
+
+    I kept the batch size, learning rate, and number of epochs pretty standard.
+    I experimented with different combinations of rnn size and embedding size, and found that
+    increasing the rnn size lead to an increase in accuracy, while increasing the embedding size
+    didn't affect the accuracy as much. 
+
+Results
+
+    English to French: https://www.comet.ml/siy3udd6/zeroshot/86a30c41b8854343a9720b30d11575bf
+        Accuracy: 0.747
+        Perplexity: 2.724
+    English to German: https://www.comet.ml/siy3udd6/zeroshot/75e9b0e6f03d4f3bb81a89ab43d8a0fe
+        Accuracy: 0.737
+        Perplexity: 3.015
+    One to Many: English to French/German: https://www.comet.ml/siy3udd6/zeroshot/fa88becb932840169927d58320d36959
+        Accuracy: 0.734
+        Perplexity: 2.974
+    Zeroshot German to French: https://www.comet.ml/siy3udd6/zeroshot/dca65ad6ac194b078810e3cc738af00f
+        Accuracy: 0.368
+        Perplexity: 53.216
+
+The one-to-many model did slightly worse than the regular one to one translation models. 
+However, it still performed qutie well, and I think it is because german and french both
+still use latin script, and have a lot of similarities with each other.
+
+I think that the zeroshot translation is able to generate predictions even though it never saw
+examples from German to French, because it was trained on the same vocabulary that consisted of
+tokens from al three languages, and so was able to generate vector represesentations of words from
+all three languages that exist in the same embedding space.

@@ -19,24 +19,32 @@ hyper_params = {
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
+
+
 experiment = Experiment(project_name="transformer")
 experiment.log_parameters(hyper_params)
+
+def make_mask(window_size):
+    attn_shape = (1, window_size, window_size)
+    subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
+    return torch.from_numpy(subsequent_mask) == 0
+
 
 # Train the Model
 def train(model, train_loader, experiment, hyperparams):
     # Loss and Optimizer
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
-
     model = model.train()
     with experiment.train():
         for e in range(hyper_params['num_epochs']):
             for batch in tqdm(train_loader):
+                mask = make_mask(batch['input_vectors'].size(-1)).to(device)
                 x = batch['input_vectors'].to(device)
                 y = batch['label_vectors'].to(device)
                 lengths = batch['lengths'].to(device)
                 optimizer.zero_grad()
-                y_pred = model(x)
+                y_pred = model(x, mask)
 
                 loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
                 loss.backward()

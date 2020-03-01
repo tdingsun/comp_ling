@@ -64,24 +64,19 @@ class Multi_Headed_Attention(nn.Module):
         self.linear_q = nn.Linear(embedding_size, embedding_size)
         self.linear_end = nn.Linear(embedding_size, embedding_size)
         self.dropout = nn.Dropout(p = dropout)
-        self.mask = self.make_mask(window_size)
 
         pass
-    def forward(self, inputs_k, inputs_v, inputs_q):
-        mask = self.mask.unsqueeze(1)
+    def forward(self, inputs_k, inputs_v, inputs_q, mask):
+        m = mask.unsqueeze(1)
         num_batches = inputs_k.size(0)
         k = self.linear_k(inputs_k).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
         v = self.linear_v(inputs_v).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
         q = self.linear_q(inputs_q).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
 
-        x = Self_Attention(k, v, q, mask) #add dropout or no?
+        x = Self_Attention(k, v, q, m) #add dropout or no?
         x = x.transpose(1, 2).contiguous().view(num_batches, -1, self.h * self.split_size)
         return self.linear_end(x)
     
-    def make_mask(self, window_size):
-        attn_shape = (1, window_size, window_size)
-        subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
-        return torch.from_numpy(subsequent_mask) == 0
 
 
 
@@ -109,8 +104,8 @@ class Encoder(nn.Module):
         self.ff_layer = Feed_Forward(embedding_size)
         self.layer_norm = nn.LayerNorm(embedding_size)
 
-    def forward(self, x):
-        atten_out = self.multihead(x, x, x)
+    def forward(self, x, mask):
+        atten_out = self.multihead(x, x, x, mask)
         atten_out += x
         atten_normalized = self.layer_norm(atten_out)
 
@@ -141,11 +136,11 @@ class Transformer(nn.Module):
         self.linear_1 = nn.Linear(self.embedding_size, self.hidden_size)
         self.linear_2 = nn.Linear(self.hidden_size, self.vocab_size)
 
-    def forward(self, inputs):
+    def forward(self, inputs, mask):
         embeddings = self.embedding(inputs)
         x = self.positional_encoding_layer(embeddings)
         for layer in self.encoder_layers:
-            x = layer(x)
+            x = layer(x, mask)
         x = self.linear_1(x)
         x = F.leaky_relu(x)
         x = self.linear_2(x)

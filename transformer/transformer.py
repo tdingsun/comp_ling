@@ -1,8 +1,8 @@
 from comet_ml import Experiment
 from preprocess import *
-from model import Transformer
+from model import *
 from torch.utils.data import DataLoader, random_split
-from torch import nn, Optimize
+from torch import nn
 
 import torch
 import numpy as np
@@ -13,7 +13,7 @@ hyper_params = {
     "batch_size": 100,
     "num_epochs": 3,
     "learning_rate": 0.01,
-    "embedding_size": 64
+    "embedding_size": 66
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,9 +37,9 @@ def train(model, train_loader, experiment, hyperparams):
                 lengths = batch['lengths'].to(device)
                 optimizer.zero_grad()
                 y_pred = model(x)
-                y_pred = torch.flatten(y_pred, 0, 1)
-                y_actual = torch.flatten(y, 0, 1)
-                loss = loss_fn(y_pred, y_actual)
+
+                loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+                print(loss.item())
                 loss.backward()
                 optimizer.step()
 
@@ -50,7 +50,8 @@ def train(model, train_loader, experiment, hyperparams):
 
                 num_wrong_in_batch = 0
                 for i in range(len(lengths)):
-                    diff = torch.argmax(y_pred[i, :])[0:lengths[i]] - y[i, 0:lengths[i]]
+                    
+                    diff = torch.argmax(y_pred[i, :], -1)[0:lengths[i]] - y[i, 0:lengths[i]]
                     num_wrong_in_batch += np.count_nonzero(diff.cpu())
 
                 accuracy = 1 - (num_wrong_in_batch / num_words_in_batch)
@@ -66,7 +67,6 @@ def train(model, train_loader, experiment, hyperparams):
 def test(model, train_loader, experiment, hyperparams):
     # Loss and Optimizer
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
-    optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
     total_loss = 0
     word_count = 0
     total_wrong = 0

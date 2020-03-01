@@ -9,64 +9,10 @@ from torch.autograd import Variable
 def clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
 
-
-class Transformer(nn.Module):
-    def __init__(self, vocab_size, window_size, batch_size, embedding_size):
-        super(Transformer, self).__init__()
-
-        self.vocab_size = vocab_size
-        self.window_size = window_size
-        self.batch_size = batch_size
-        self.embedding_size = embedding_size
-        self.hidden_size = embedding_size
-        self.dropout = 0.1
-
-        #embedding layer
-        self.embedding = nn.Embedding(vocab_size, embedding_size)
-        #positional encoding layer
-        self.positional_encoding_layer = Positional_Encoding_Layer(self.window_size, self.embedding_size, self.dropout)
-        #encoder layer (transformer block) * 6
-        self.encoder_layers = clones(Encoder(self.embedding_size, self.dropout), 6)
-        #dense layers
-        self.linear_1 = nn.Linear(self.embedding_size, self.hidden_size)
-        self.relu = nn.LeakyReLu()
-        self.linear_2 = nn.Linear(self.hidden_size, self.vocab_size)
-
-    def forward(self, inputs):
-        embeddings = self.embedding(inputs)
-        x = self.positional_encoding_layer(embeddings)
-        for layer in self.encoder_layers:
-            x = layer(x)
-        x = self.linear_1(x)
-        x = self.relu(x)
-        x = self.linear_2(x)
-        
-        return x 
-
-
-class Encoder(nn.module):
+class Positional_Encoding_Layer(nn.Module):
     """
-        multihead, add+norm, feedforward, add+norm
+    Right now is fixed using sin and cos, I could try just doing a learned thing if it doesnt work.
     """
-    def __init__(self, embedding_size, dropout):
-        self.multihead = Multi_Headed_Attention(embedding_size, dropout)
-        self.ff_layer = Feed_Forward(embedding_size)
-        self.layer_norm = nn.LayerNorm(embedding_size)
-        self.relu = nn.LeakyReLu()
-        pass
-
-    def forward(self, x):
-        atten_out = self.multihead(x, x, x)
-        atten_out += x
-        atten_normalized = self.layer_norm(atten_out)
-
-        ff_out = self.ff_layer(atten_normalized)
-        ff_out += atten_normalized
-        ff_norm = self.layer_norm(ff_out)
-
-        return self.relu(ff_norm)
-
-class Positional_Encoding_Layer(nn.module):
     def __init__(self, window_size, embedding_size, dropout):
         super(Positional_Encoding_Layer, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
@@ -96,8 +42,8 @@ def Self_Attention(K, V, Q):
 
     window_size_keys = K.shape[1]
 
-    sqrt_k_dim = torch.sqrt(window_size_keys)
-    qk_t = torch.matmul(Q, torch.transpose(K, 1, 2)) / sqrt_k_dim
+    sqrt_k_dim = math.sqrt(window_size_keys)
+    qk_t = torch.matmul(Q, K.transpose(-2, -1)) / sqrt_k_dim
 
     attention = torch.matmul(F.softmax(qk_t, dim=-1), V)
 
@@ -105,12 +51,13 @@ def Self_Attention(K, V, Q):
 
 class Multi_Headed_Attention(nn.Module):
     def __init__(self, embedding_size, dropout):
+        super(Multi_Headed_Attention, self).__init__()
         #make 3 different attention heads
         #split data for 3 different heads of size embedding_size/3
         #concatenate outputs of three heads
         #apply linear layer
         self.h = 3
-        self.split_size = embedding_size / self.h
+        self.split_size = int(embedding_size / self.h)
         self.linear_v = nn.Linear(embedding_size, embedding_size)
         self.linear_k = nn.Linear(embedding_size, embedding_size)
         self.linear_q = nn.Linear(embedding_size, embedding_size)
@@ -120,24 +67,77 @@ class Multi_Headed_Attention(nn.Module):
         pass
     def forward(self, inputs_k, inputs_v, inputs_q):
         num_batches = inputs_k.size(0)
-        k = self.linear_k(inputs_k).view(num_batches, -1, self.h, self.split_size)
-        v = self.linear_v(inputs_v).view(num_batches, -1, self.h, self.split_size)
-        q = self.linear_q(inputs_q).view(num_batches, -1, self.h, self.split_size)
+        k = self.linear_k(inputs_k).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
+        v = self.linear_v(inputs_v).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
+        q = self.linear_q(inputs_q).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
 
         x = Self_Attention(k, v, q) #add dropout or no?
-        x = x.contiguous().view(num_batches, -1, self.h * self.split_size)
+        x = x.transpose(1, 2).contiguous().view(num_batches, -1, self.h * self.split_size)
         return self.linear_end(x)
 
 class Feed_Forward(nn.Module):
     def __init__(self, embedding_size):
+        super(Feed_Forward, self).__init__()
         self.embedding_size = embedding_size
         self.hidden_size = embedding_size
         self.layer_1 = nn.Linear(embedding_size, self.hidden_size)
-        self.relu = nn.LeakyReLu()
         self.layer_2 = nn.Linear(embedding_size, self.hidden_size)
 
     def forward(self, x):
         out = self.layer_1(x)
-        out = self.relu(out)
+        out = F.leaky_relu(out)
         out = self.layer_2(out)
         return out
+
+class Encoder(nn.Module):
+    """
+        multihead, add+norm, feedforward, add+norm
+    """
+    def __init__(self, embedding_size, dropout):
+        super(Encoder, self).__init__()
+        self.multihead = Multi_Headed_Attention(embedding_size, dropout)
+        self.ff_layer = Feed_Forward(embedding_size)
+        self.layer_norm = nn.LayerNorm(embedding_size)
+
+    def forward(self, x):
+        atten_out = self.multihead(x, x, x)
+        atten_out += x
+        atten_normalized = self.layer_norm(atten_out)
+
+        ff_out = self.ff_layer(atten_normalized)
+        ff_out += atten_normalized
+        ff_norm = self.layer_norm(ff_out)
+
+        return F.leaky_relu(ff_norm)
+
+class Transformer(nn.Module):
+    def __init__(self, vocab_size, window_size, batch_size, embedding_size):
+        super(Transformer, self).__init__()
+
+        self.vocab_size = vocab_size
+        self.window_size = window_size
+        self.batch_size = batch_size
+        self.embedding_size = embedding_size
+        self.hidden_size = embedding_size
+        self.dropout = 0.1
+
+        #embedding layer
+        self.embedding = nn.Embedding(vocab_size, embedding_size)
+        #positional encoding layer
+        self.positional_encoding_layer = Positional_Encoding_Layer(self.window_size, self.embedding_size, self.dropout)
+        #encoder layer (transformer block) * 6
+        self.encoder_layers = clones(Encoder(self.embedding_size, self.dropout), 6)
+        #dense layers
+        self.linear_1 = nn.Linear(self.embedding_size, self.hidden_size)
+        self.linear_2 = nn.Linear(self.hidden_size, self.vocab_size)
+
+    def forward(self, inputs):
+        embeddings = self.embedding(inputs)
+        x = self.positional_encoding_layer(embeddings)
+        for layer in self.encoder_layers:
+            x = layer(x)
+        x = self.linear_1(x)
+        x = F.leaky_relu(x)
+        x = self.linear_2(x)
+        
+        return x 

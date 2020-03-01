@@ -53,17 +53,15 @@ class TransformerDataset(Dataset):
         self.vocab_size = 0
 
         for line in input_lines:
-            label = line.strip().split()
-
             label_vector = []
-            for word in label:
+            for word in line:
                 if word not in self.word2id:
                     self.word2id[word] = self.curr_id
                     self.curr_id += 1
                 label_vector.append(self.word2id[word])
             input_vector = [self.word2id[START_TOKEN]] + label_vector[:-1]
 
-            self.lengths.append(len(label))
+            self.lengths.append(len(line))
             self.label_vectors.append(torch.tensor(label_vector))
             self.input_vectors.append(torch.tensor(input_vector))
         

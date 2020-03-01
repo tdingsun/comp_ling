@@ -89,7 +89,7 @@ def test(model, train_loader, experiment, hyperparams):
 
             num_wrong_in_batch = 0
             for i in range(len(lengths)):
-                diff = torch.argmax(y_pred[i, :])[0:lengths[i]] - y[i, 0:lengths[i]]
+                diff = torch.argmax(y_pred[i, :], -1)[0:lengths[i]] - y[i, 0:lengths[i]]
                 num_wrong_in_batch += np.count_nonzero(diff.cpu())
             total_wrong += num_wrong_in_batch
         

@@ -10,9 +10,9 @@ import argparse
 from tqdm import tqdm
 
 hyper_params = {
-    "batch_size": 100,
+    "batch_size": 20,
     "num_epochs": 3,
-    "learning_rate": 0.01,
+    "learning_rate": 0.001,
     "embedding_size": 66
 }
 
@@ -39,7 +39,6 @@ def train(model, train_loader, experiment, hyperparams):
                 y_pred = model(x)
 
                 loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
-                print(loss.item())
                 loss.backward()
                 optimizer.step()
 
@@ -79,9 +78,7 @@ def test(model, train_loader, experiment, hyperparams):
             lengths = batch['lengths'].to(device)
 
             y_pred = model(x)
-            y_pred = torch.flatten(y_pred, 0, 1)
-            y_actual = torch.flatten(y, 0, 1)
-            loss = loss_fn(y_pred, y_actual)
+            loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
 
             num_words_in_batch = torch.sum(lengths).item()
             total_loss += loss.item()*num_words_in_batch
@@ -132,7 +129,7 @@ if __name__ == "__main__":
     if args.train:
         print("running training loop...")
         train(model, train_loader, experiment, hyper_params)
-    if args.train:
+    if args.test:
         print("running testing loop...")
         test(model, test_loader, experiment, hyper_params)
     if args.save:

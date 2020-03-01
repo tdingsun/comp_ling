@@ -81,11 +81,12 @@ def test(model, train_loader, experiment, hyperparams):
     model = model.eval()
     with experiment.test():
         for batch in tqdm(test_loader):
+            mask = make_mask(batch['input_vectors'].size(-1)).to(device)
             x = batch['input_vectors'].to(device)
             y = batch['label_vectors'].to(device)
             lengths = batch['lengths'].to(device)
 
-            y_pred = model(x)
+            y_pred = model(x, mask)
             loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
 
             num_words_in_batch = torch.sum(lengths).item()

@@ -124,7 +124,7 @@ if __name__ == "__main__":
         window_size,
         hyper_params['batch_size'],
         hyper_params['embedding_size']
-    )
+    ).to(device)
 
     if args.load:
         print("loading saved model...")

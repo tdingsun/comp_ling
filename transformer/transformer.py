@@ -92,6 +92,8 @@ def test(model, train_loader, experiment, hyperparams):
         
         perplexity = np.exp(total_loss / word_count)
         accuracy = 1 - (total_wrong / word_count)
+        print("perplexity: ", perplexity)
+        print("accuracy: ", accuracy)
         experiment.log_metric("perplexity", perplexity)
         experiment.log_metric("accuracy", accuracy)
 

@@ -32,7 +32,7 @@ class Positional_Encoding_Layer(nn.Module):
 
 
 
-def Self_Attention(K, V, Q):
+def Self_Attention(K, V, Q, mask):
     """
 	:param K: is [batch_size x window_size_keys x embedding_size]
 	:param V: is [batch_size x window_size_values x embedding_size]
@@ -44,13 +44,14 @@ def Self_Attention(K, V, Q):
 
     sqrt_k_dim = math.sqrt(window_size_keys)
     qk_t = torch.matmul(Q, K.transpose(-2, -1)) / sqrt_k_dim
+    qk_t = qk_t.masked_fill(mask == 0, -1e9)
 
     attention = torch.matmul(F.softmax(qk_t, dim=-1), V)
 
     return attention
 
 class Multi_Headed_Attention(nn.Module):
-    def __init__(self, embedding_size, dropout):
+    def __init__(self, embedding_size, dropout, window_size):
         super(Multi_Headed_Attention, self).__init__()
         #make 3 different attention heads
         #split data for 3 different heads of size embedding_size/3
@@ -63,17 +64,26 @@ class Multi_Headed_Attention(nn.Module):
         self.linear_q = nn.Linear(embedding_size, embedding_size)
         self.linear_end = nn.Linear(embedding_size, embedding_size)
         self.dropout = nn.Dropout(p = dropout)
+        self.mask = self.make_mask(window_size)
 
         pass
     def forward(self, inputs_k, inputs_v, inputs_q):
+        mask = self.mask.unsqueeze(1)
         num_batches = inputs_k.size(0)
         k = self.linear_k(inputs_k).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
         v = self.linear_v(inputs_v).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
         q = self.linear_q(inputs_q).view(num_batches, -1, self.h, self.split_size).transpose(1, 2)
 
-        x = Self_Attention(k, v, q) #add dropout or no?
+        x = Self_Attention(k, v, q, mask) #add dropout or no?
         x = x.transpose(1, 2).contiguous().view(num_batches, -1, self.h * self.split_size)
         return self.linear_end(x)
+    
+    def make_mask(self, window_size):
+        attn_shape = (1, window_size, window_size)
+        subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
+        return torch.from_numpy(subsequent_mask) == 0
+
+
 
 class Feed_Forward(nn.Module):
     def __init__(self, embedding_size):
@@ -93,9 +103,9 @@ class Encoder(nn.Module):
     """
         multihead, add+norm, feedforward, add+norm
     """
-    def __init__(self, embedding_size, dropout):
+    def __init__(self, embedding_size, dropout, window_size):
         super(Encoder, self).__init__()
-        self.multihead = Multi_Headed_Attention(embedding_size, dropout)
+        self.multihead = Multi_Headed_Attention(embedding_size, dropout, window_size)
         self.ff_layer = Feed_Forward(embedding_size)
         self.layer_norm = nn.LayerNorm(embedding_size)
 
@@ -126,7 +136,7 @@ class Transformer(nn.Module):
         #positional encoding layer
         self.positional_encoding_layer = Positional_Encoding_Layer(self.window_size, self.embedding_size, self.dropout)
         #encoder layer (transformer block) * 6
-        self.encoder_layers = clones(Encoder(self.embedding_size, self.dropout), 6)
+        self.encoder_layers = clones(Encoder(self.embedding_size, self.dropout, window_size), 6)
         #dense layers
         self.linear_1 = nn.Linear(self.embedding_size, self.hidden_size)
         self.linear_2 = nn.Linear(self.hidden_size, self.vocab_size)

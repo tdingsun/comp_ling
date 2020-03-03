@@ -10,10 +10,10 @@ import argparse
 from tqdm import tqdm
 
 hyper_params = {
-    "batch_size": 100,
+    "batch_size": 20,
     "num_epochs": 3,
     "learning_rate": 0.001,
-    "embedding_size": 66
+    "embedding_size": 192
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

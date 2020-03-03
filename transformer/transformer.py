@@ -12,7 +12,7 @@ from tqdm import tqdm
 hyper_params = {
     "batch_size": 100,
     "num_epochs": 3,
-    "learning_rate": 0.01,
+    "learning_rate": 0.001,
     "embedding_size": 66
 }
 

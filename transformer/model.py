@@ -53,11 +53,11 @@ def Self_Attention(K, V, Q, mask):
 class Multi_Headed_Attention(nn.Module):
     def __init__(self, embedding_size, dropout, window_size):
         super(Multi_Headed_Attention, self).__init__()
-        #make 3 different attention heads
-        #split data for 3 different heads of size embedding_size/3
+        #make 8 different attention heads
+        #split data for 8 different heads of size embedding_size/3
         #concatenate outputs of three heads
         #apply linear layer
-        self.h = 3
+        self.h = 8
         self.split_size = int(embedding_size / self.h)
         self.linear_v = nn.Linear(embedding_size, embedding_size)
         self.linear_k = nn.Linear(embedding_size, embedding_size)

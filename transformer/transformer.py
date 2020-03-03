@@ -13,7 +13,7 @@ hyper_params = {
     "batch_size": 20,
     "num_epochs": 3,
     "learning_rate": 0.001,
-    "embedding_size": 192
+    "embedding_size": 256
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

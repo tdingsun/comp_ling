@@ -1,7 +1,29 @@
+hyper_params = {
+    "batch_size": 20,
+    "num_epochs": 3,
+    "learning_rate": 0.001,
+    "embedding_size": 256
+}
+
+I choose a learning rate of 0.001 because anything higher seemed to be too volatile, and didn't give me good results. I chose an embedding_size of 256 so that it could be divided evenly by the 8 attention heads. I found that a batch size of 20 was a good trade-off between train time and performance.
+
+
+Perplexity: 109.20
+https://www.comet.ml/siy3udd6/transformer/4924ca07fad044bbb709f52778083b0b
+
+
 1. What are the benefits (and possibly disadvantages) of using a transformer network as opposed to an RNN network for language modeling?
+
+It is much faster, as it doesn't have any RNN units, and it also lends itself well to parallelization. Also, since it uses self-attention to encode position-dependent information instead of a hidden state, it is able to maintain knowledge of relevant past sequential data for longer.  
 
 2. What are the purposes of each of the three vectors (query, key, value) in Scaled Dot-Product Attention? (Hint: Think why they are named that way. How are they used to produce an attention-based output? Alternatively, if you are unsure about the query/key/value naming scheme but are instead more familiar with the traditional notation for attention mechanisms, you can explain in terms of those as well.)
 
+The query is the vector representation of the word currently being considered. The key is the word that the query is scored against. The query must be scored against each word in the input sentence (by taking the dot product of the query and the key). We then softmax the score and apply that to each word, represented by the value vector. That way, we keep the values of words that are most relevant, and we might multiply the values of irreelvant words by a number close to zero in order to decrease their importance.
+
 3. What is the purpose of using multiple heads for attention, instead of just one? (Hint: the paper talks about this!)
 
+Using multiple heads for attention expands the model's ability to focus on different positions in the input sentence. It was also shown that these multiple heads will learn to do different tasks that relate syntactically to the input sentence. 
+
 4. What is the purpose of positional encoding, and why would a sinusoid function work for this purpose? Are there other functions that may work for this purpose as well?
+
+Positional encoding adds a vector to each input, and the vectors follow a specific pattern such that the model is able to determine the position of each word. So a sinusoid function works well for this purpose because it is periodic, and deterministic. Another option would be to have the positional encoding be a learned set of weights. 

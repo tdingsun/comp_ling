@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 hyper_params = {
     "batch_size": 20,
-    "num_epochs": 3,
+    "num_epochs": 1,
     "learning_rate": 0.001,
     "embedding_size": 256
  }
@@ -26,7 +26,7 @@ def make_mask(window_size):
     return torch.from_numpy(subsequent_mask) == 0
 
 # Train the Model
-def train_transformer(model, train_loader, experiment, hyperparams):
+def train_transformer(model, train_loader, experiment, hyperparams, tokenizer):
     # Loss and Optimizer
     loss_fn = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         ).to(device)
         if args.train:
             print("training transformer")
-            train_transformer(model, train_loader, experiment, hyper_params)
+            train_transformer(model, train_loader, experiment, hyper_params, tokenizer)
         if args.test:
             print("testing transformer")
             test_transformer(model, test_loader, experiment, hyper_params)

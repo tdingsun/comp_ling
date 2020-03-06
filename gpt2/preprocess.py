@@ -18,18 +18,18 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     # print(tokenizer.pad_token)
     # print(tokenizer.pad_token_id)
 
-    max_seq_len = get_max_seq_len(train_fn, test_fn)
+    max_seq_len = get_max_seq_len(train_fn, test_fn) + 1
 
     train_inputs = []
     train_labels = []
     train_lengths = []
     with open(train_fn, 'r') as f:
         for line in f:
-            label = line.strip().split()
-            input_seq = [tokenizer.bos_token] + label[:-1]
+            input_seq = tokenizer.bos_token + " " + line
+            label = line + " " + tokenizer.eos_token
             train_lengths.append(len(input_seq))
-            train_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True)))
-            train_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True)))
+            train_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True, add_special_tokens=False)))
+            train_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True, add_special_tokens=False)))
     train_lengths = torch.tensor(train_lengths)
 
     test_inputs = []
@@ -37,8 +37,8 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     test_lengths = []
     with open(test_fn, 'r') as f:
         for line in f:
-            label = line.strip().split()
-            input_seq = [tokenizer.bos_token] + label[:-1]
+            input_seq = tokenizer.bos_token + " " + line
+            label = line + " " + tokenizer.eos_token
             test_lengths.append(len(input_seq))
             test_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True)))
             test_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True)))
@@ -54,15 +54,12 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
 def load_gpt2_dataset(test_fn, tokenizer, batch_size):
     test_inputs = []
     test_labels = []
-    test_lengths = []
     with open(test_fn, 'r') as f:
         for line in f:
-            label = line.strip().split()
-            input_seq = [tokenizer.bos_token] + label[:-1]
-            test_lengths.append(len(input_seq))
+            input_seq = tokenizer.bos_token + " " + line
+            label = line + " " + tokenizer.eos_token
             test_inputs.append(torch.tensor(tokenizer.encode(input_seq)))
             test_labels.append(torch.tensor(tokenizer.encode(label)))
-    test_lengths = torch.tensor(test_lengths)
     test_inputs = torch.cat(test_inputs).unsqueeze(1)
     print(test_inputs.shape)
     test_labels = torch.cat(test_labels).unsqueeze(1)

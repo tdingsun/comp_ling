@@ -105,12 +105,11 @@ def test_gpt2(model, test_loader, experiment, hyperparams):
     with experiment.test():
         for batch in tqdm(test_loader):
             x = batch['input_vectors'].to(device)
-            y = batch['label_vectors'].to(device)
-            outputs = model(x, labels=y)
+            outputs = model(x, labels=x)
             loss, logits = outputs[:2]
-            print(outputs[0])
-            total_loss += loss.item()
-            word_count += 1
+            num_words_in_batch = x.shape[1]
+            total_loss += loss.item()*num_words_in_batch
+            word_count += num_words_in_batch
 
         perplexity = np.exp(total_loss / word_count)
         print("perplexity: ", perplexity)

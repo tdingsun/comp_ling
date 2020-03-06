@@ -60,10 +60,10 @@ def load_gpt2_dataset(test_fn, tokenizer, batch_size):
             label = line + " " + tokenizer.eos_token
             test_inputs.append(torch.tensor(tokenizer.encode(input_seq)))
             test_labels.append(torch.tensor(tokenizer.encode(label)))
-    test_inputs = torch.cat(test_inputs).unsqueeze(1)
-    print(test_inputs.shape)
-    test_labels = torch.cat(test_labels).unsqueeze(1)
-    print(test_labels.shape)
+    # test_inputs = torch.cat(test_inputs).unsqueeze(1)
+    # print(test_inputs.shape)
+    # test_labels = torch.cat(test_labels).unsqueeze(1)
+    # print(test_labels.shape)
     test_dataset = GPT2Dataset(test_inputs, test_labels)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 

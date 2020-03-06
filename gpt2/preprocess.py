@@ -25,11 +25,14 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     train_lengths = []
     with open(train_fn, 'r') as f:
         for line in f:
-            input_seq = tokenizer.bos_token + " " + line
-            label = line + " " + tokenizer.eos_token
+            encoded_line = tokenizer.encode(line)
+            input_seq = [tokenizer.bos_token_id] + encoded_line
+            label = encoded_line + [tokenizer.eos_token_id]
             train_lengths.append(len(input_seq))
-            train_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True)))
-            train_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True)))
+            train_inputs.append(torch.tensor(input_seq))
+            train_labels.append(torch.tensor(label))
+            # train_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True)))
+            # train_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True)))
     train_lengths = torch.tensor(train_lengths)
 
     test_inputs = []
@@ -37,11 +40,14 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     test_lengths = []
     with open(test_fn, 'r') as f:
         for line in f:
-            input_seq = tokenizer.bos_token + " " + line
-            label = line + " " + tokenizer.eos_token
+            encoded_line = tokenizer.encode(line)
+            input_seq = [tokenizer.bos_token_id] + encoded_line
+            label = encoded_line + [tokenizer.eos_token_id]
             test_lengths.append(len(input_seq))
-            test_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True)))
-            test_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True)))
+            test_inputs.append(torch.tensor(input_seq))
+            test_labels.append(torch.tensor(label))
+            # test_inputs.append(torch.tensor(tokenizer.encode(input_seq, max_length=max_seq_len, pad_to_max_length=True)))
+            # test_labels.append(torch.tensor(tokenizer.encode(label, max_length=max_seq_len, pad_to_max_length=True)))
     test_lengths = torch.tensor(test_lengths)
 
     train_dataset = TransformerDataset(train_inputs, train_labels, train_lengths)

@@ -146,6 +146,7 @@ if __name__ == "__main__":
 
     if args.model == "transformer":
         # Load your transformer
+        print("preprocessing...")
         tokenizer.add_special_tokens(tokens_dict_transformer)
         train_loader, test_loader, vocab_size, window_size = load_transformer_dataset(args.train_file, args.test_file, tokenizer, hyper_params['batch_size'])
 
@@ -155,6 +156,7 @@ if __name__ == "__main__":
             hyper_params['batch_size'],
             hyper_params['embedding_size']
         ).to(device)
+        print("preprocessing done")
         if args.train:
             print("training transformer")
             train_transformer(model, train_loader, experiment, hyper_params, tokenizer)

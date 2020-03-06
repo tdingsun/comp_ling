@@ -2,9 +2,9 @@ from comet_ml import Experiment
 import torch
 import torch.nn
 import argparse
-from transformers import GPT2Tokenizer, GPT2Model
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from transformer import *
-from preprocess import *
+from preprocess import load_transformer_dataset, load_gpt2_dataset
 from tqdm import tqdm
 
 hyper_params = {
@@ -103,6 +103,23 @@ def test_transformer(model, train_loader, experiment, hyperparams):
 
         # Log perplexity to Comet.ml using experiment.log_metric
 
+def test_gpt2(model, test_loader, experiment, hyperparams):
+    total_loss = 0
+    word_count = 0
+    model = model.eval()
+    with experiment.test():
+        for batch in tqdm(test_loader):
+            x = batch['input_vectors'].to(device)
+            y = batch['label_vectors'].to(device)
+            outputs = model(x, labels=y)
+            loss, logits = outputs[:2]
+
+            total_loss += loss.item()
+            word_count += 1
+
+        perplexity = np.exp(total_loss / word_count)
+        print("perplexity: ", perplexity)
+        experiment.log_metric("perplexity", perplexity)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -124,14 +141,13 @@ if __name__ == "__main__":
     tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
     tokens_dict_transformer = {'pad_token': '<PAD>'}
-    Model = GPT2Model.from_pretrained('gpt2')
     
     # Load the train, test DataLoader NOTE: Parse the data using the GPT2 tokenizer for both models
 
     if args.model == "transformer":
         # Load your transformer
         tokenizer.add_special_tokens(tokens_dict_transformer)
-        train_loader, test_loader, vocab_size, window_size = load_dataset(args.train_file, args.test_file, tokenizer, hyper_params['batch_size'], "transformer")
+        train_loader, test_loader, vocab_size, window_size = load_transformer_dataset(args.train_file, args.test_file, tokenizer, hyper_params['batch_size'])
 
         model = Transformer(
             vocab_size,
@@ -147,7 +163,9 @@ if __name__ == "__main__":
             test_transformer(model, test_loader, experiment, hyper_params)
     elif args.model == "gpt2":
         # Load the GPT2 model
-        pass
+        model = GPT2LMHeadModel.from_pretrained('gpt2').to(device)
+        test_loader = load_gpt2_dataset(args.test_file, tokenizer, 1)
+        test_gpt2(model, test_loader, experiment, hyper_params)
 
     # Train the model if args.model == "transformer"
 

@@ -28,7 +28,7 @@ def make_mask(window_size):
 # Train the Model
 def train_transformer(model, train_loader, experiment, hyperparams, tokenizer):
     # Loss and Optimizer
-    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=(model.vocab_size - 1))
     optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
     model = model.train()
     with experiment.train():
@@ -68,7 +68,7 @@ def train_transformer(model, train_loader, experiment, hyperparams, tokenizer):
 # Test the Model
 def test_transformer(model, train_loader, experiment, hyperparams):
     # Loss and Optimizer
-    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=(model.vocab_size - 1))
     total_loss = 0
     word_count = 0
     total_wrong = 0

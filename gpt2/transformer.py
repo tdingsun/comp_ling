@@ -101,7 +101,7 @@ def Self_Attention(K, V, Q, mask):
     sqrt_k_dim = math.sqrt(window_size_keys)
     qk_t = torch.matmul(Q, K.transpose(-2, -1)) / sqrt_k_dim
     qk_t = qk_t.masked_fill(mask == 0, -1e9)
-
+    print(qk_t)
     attention = torch.matmul(F.softmax(qk_t, dim=-1), V)
 
     return attention

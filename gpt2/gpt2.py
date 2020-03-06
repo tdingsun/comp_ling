@@ -1,21 +1,107 @@
+from comet_ml import Experiment
 import torch
 import torch.nn
 import argparse
-from transformers import *
-from gpt2 import *
+from transformers import GPT2Tokenizer, GPT2Model
 from transformer import *
 from preprocess import *
 from tqdm import tqdm
-from comet_ml import Experiment
 
 hyper_params = {
-     "batch_size": 100,
-     "num_epochs": 3,
-     "learning_rate": 0.01
+    "batch_size": 20,
+    "num_epochs": 3,
+    "learning_rate": 0.001,
+    "embedding_size": 256
  }
 
-experiment = Experiment(project_name="transformer")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+
+experiment = Experiment(project_name="gpt2")
 experiment.log_parameters(hyper_params)
+
+def make_mask(window_size):
+    attn_shape = (1, window_size, window_size)
+    subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
+    return torch.from_numpy(subsequent_mask) == 0
+
+# Train the Model
+def train_transformer(model, train_loader, experiment, hyperparams):
+    # Loss and Optimizer
+    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
+    model = model.train()
+    with experiment.train():
+        for e in range(hyper_params['num_epochs']):
+            for batch in tqdm(train_loader):
+                mask = make_mask(batch['input_vectors'].size(-1)).to(device)
+                x = batch['input_vectors'].to(device)
+                y = batch['label_vectors'].to(device)
+                lengths = batch['lengths'].to(device)
+                optimizer.zero_grad()
+                y_pred = model(x, mask)
+
+                loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+                loss.backward()
+                optimizer.step()
+
+                num_words_in_batch = torch.sum(lengths).item()
+                total_batch_loss = loss.item()*num_words_in_batch
+                perplexity = np.exp(total_batch_loss / num_words_in_batch)
+                experiment.log_metric("perplexity", perplexity)
+
+                num_wrong_in_batch = 0
+                for i in range(len(lengths)):
+                    
+                    diff = torch.argmax(y_pred[i, :], -1)[0:lengths[i]] - y[i, 0:lengths[i]]
+                    num_wrong_in_batch += np.count_nonzero(diff.cpu())
+
+                accuracy = 1 - (num_wrong_in_batch / num_words_in_batch)
+                experiment.log_metric("accuracy", accuracy)
+        # Forward + Backward + Optimize
+
+        # Compute train accuracy
+
+        # Log perplexity to Comet.ml using experiment.log_metric
+
+
+# Test the Model
+def test_transformer(model, train_loader, experiment, hyperparams):
+    # Loss and Optimizer
+    loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+    total_loss = 0
+    word_count = 0
+    total_wrong = 0
+
+    model = model.eval()
+    with experiment.test():
+        for batch in tqdm(test_loader):
+            mask = make_mask(batch['input_vectors'].size(-1)).to(device)
+            x = batch['input_vectors'].to(device)
+            y = batch['label_vectors'].to(device)
+            lengths = batch['lengths'].to(device)
+
+            y_pred = model(x, mask)
+            loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+
+            num_words_in_batch = torch.sum(lengths).item()
+            total_loss += loss.item()*num_words_in_batch
+            word_count += num_words_in_batch
+
+            num_wrong_in_batch = 0
+            for i in range(len(lengths)):
+                diff = torch.argmax(y_pred[i, :], -1)[0:lengths[i]] - y[i, 0:lengths[i]]
+                num_wrong_in_batch += np.count_nonzero(diff.cpu())
+            total_wrong += num_wrong_in_batch
+        
+        perplexity = np.exp(total_loss / word_count)
+        accuracy = 1 - (total_wrong / word_count)
+        print("perplexity: ", perplexity)
+        print("accuracy: ", accuracy)
+        experiment.log_metric("perplexity", perplexity)
+        experiment.log_metric("accuracy", accuracy)
+
+        # Log perplexity to Comet.ml using experiment.log_metric
 
 
 if __name__ == "__main__":
@@ -35,12 +121,30 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load the GPT2 Tokenizer
-   
+    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+
+    tokens_dict_transformer = {'pad_token': '<PAD>'}
+    Model = GPT2Model.from_pretrained('gpt2')
+    
     # Load the train, test DataLoader NOTE: Parse the data using the GPT2 tokenizer for both models
 
     if args.model == "transformer":
         # Load your transformer
-        pass
+        tokenizer.add_special_tokens(tokens_dict_transformer)
+        train_loader, test_loader, vocab_size, window_size = load_dataset(args.train_file, args.test_file, tokenizer, hyper_params['batch_size'], "transformer")
+
+        model = Transformer(
+            vocab_size,
+            window_size,
+            hyper_params['batch_size'],
+            hyper_params['embedding_size']
+        ).to(device)
+        if args.train:
+            print("training transformer")
+            train_transformer(model, train_loader, experiment, hyper_params)
+        if args.test:
+            print("testing transformer")
+            test_transformer(model, test_loader, experiment, hyper_params)
     elif args.model == "gpt2":
         # Load the GPT2 model
         pass

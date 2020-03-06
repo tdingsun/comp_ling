@@ -8,7 +8,7 @@ from preprocess import load_transformer_dataset, load_gpt2_dataset
 from tqdm import tqdm
 
 hyper_params = {
-    "batch_size": 20,
+    "batch_size": 100,
     "num_epochs": 1,
     "learning_rate": 0.001,
     "embedding_size": 256
@@ -58,11 +58,6 @@ def train_transformer(model, train_loader, experiment, hyperparams, tokenizer):
 
                 accuracy = 1 - (num_wrong_in_batch / num_words_in_batch)
                 experiment.log_metric("accuracy", accuracy)
-        # Forward + Backward + Optimize
-
-        # Compute train accuracy
-
-        # Log perplexity to Comet.ml using experiment.log_metric
 
 
 # Test the Model

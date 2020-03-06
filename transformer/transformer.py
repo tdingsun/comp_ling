@@ -63,11 +63,6 @@ def train(model, train_loader, experiment, hyperparams):
 
                 accuracy = 1 - (num_wrong_in_batch / num_words_in_batch)
                 experiment.log_metric("accuracy", accuracy)
-        # Forward + Backward + Optimize
-
-        # Compute train accuracy
-
-        # Log perplexity to Comet.ml using experiment.log_metric
 
 
 # Test the Model

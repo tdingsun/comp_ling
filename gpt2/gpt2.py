@@ -36,7 +36,6 @@ def train_transformer(model, train_loader, experiment, hyperparams):
             for batch in tqdm(train_loader):
                 mask = make_mask(batch['input_vectors'].size(-1)).to(device)
                 x = batch['input_vectors'].to(device)
-                print(x.shape)
                 y = batch['label_vectors'].to(device)
                 lengths = batch['lengths'].to(device)
                 optimizer.zero_grad()

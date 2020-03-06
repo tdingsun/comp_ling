@@ -36,6 +36,7 @@ def train_transformer(model, train_loader, experiment, hyperparams):
             for batch in tqdm(train_loader):
                 mask = make_mask(batch['input_vectors'].size(-1)).to(device)
                 x = batch['input_vectors'].to(device)
+                print(x.shape)
                 y = batch['label_vectors'].to(device)
                 lengths = batch['lengths'].to(device)
                 optimizer.zero_grad()
@@ -113,7 +114,7 @@ def test_gpt2(model, test_loader, experiment, hyperparams):
             y = batch['label_vectors'].to(device)
             outputs = model(x, labels=y)
             loss, logits = outputs[:2]
-
+            print(outputs[0])
             total_loss += loss.item()
             word_count += 1
 

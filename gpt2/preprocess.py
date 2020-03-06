@@ -30,8 +30,6 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
             encoded_line = tokenizer.encode(line, max_length=max_seq_len, pad_to_max_length=True)
             input_seq = encoded_line[:-1]
             label = encoded_line[1:]
-            print(input_seq)
-            print(label)
             train_inputs.append(torch.tensor(input_seq))
             train_labels.append(torch.tensor(label))
     train_lengths = torch.tensor(train_lengths)

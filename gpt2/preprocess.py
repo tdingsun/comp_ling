@@ -1,5 +1,6 @@
 from transformers import *
 from torch.utils.data import Dataset, DataLoader
+from torch.nn.utils.rnn import pad_sequence
 import torch
 
 def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
@@ -19,7 +20,7 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     with open(train_fn, 'r') as f:
         for line in f:
             train_lengths.append(len(line))
-            encoded_line = tokenizer.encode(line, max_length=max_seq_len, pad_to_max_length=True)
+            encoded_line = tokenizer.encode(line)
             input_seq = [tokenizer.bos_token_id] + encoded_line[:-1]
             label = encoded_line
             train_inputs.append(torch.tensor(input_seq))
@@ -32,13 +33,18 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     with open(test_fn, 'r') as f:
         for line in f:
             test_lengths.append(len(line))
-            encoded_line = tokenizer.encode(line, max_length=max_seq_len, pad_to_max_length=True)
+            encoded_line = tokenizer.encode(line)
             input_seq = [tokenizer.bos_token_id] + encoded_line[:-1]
             label = encoded_line
             test_inputs.append(torch.tensor(input_seq))
             test_labels.append(torch.tensor(label))
     test_lengths = torch.tensor(test_lengths)
 
+    train_inputs  = pad_sequence(train_inputs, batch_first=True)
+    test_inputs  = pad_sequence(test_inputs, batch_first=True)
+    train_labels  = pad_sequence(train_labels, batch_first=True)
+    test_labels  = pad_sequence(test_labels, batch_first=True)
+    
     train_dataset = TransformerDataset(train_inputs, train_labels, train_lengths)
     test_dataset = TransformerDataset(test_inputs, test_labels, test_lengths)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

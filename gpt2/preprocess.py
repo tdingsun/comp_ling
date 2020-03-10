@@ -40,10 +40,10 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
             test_labels.append(torch.tensor(label))
     test_lengths = torch.tensor(test_lengths)
 
-    train_inputs  = pad_sequence(train_inputs, batch_first=True, padding_value=tokenizer.pad_token_id)
-    test_inputs  = pad_sequence(test_inputs, batch_first=True, padding_value=tokenizer.pad_token_id)
-    train_labels  = pad_sequence(train_labels, batch_first=True, padding_value=tokenizer.pad_token_id)
-    test_labels  = pad_sequence(test_labels, batch_first=True, padding_value=tokenizer.pad_token_id)
+    # train_inputs  = pad_sequence(train_inputs, batch_first=True, padding_value=tokenizer.pad_token_id)
+    # test_inputs  = pad_sequence(test_inputs, batch_first=True, padding_value=tokenizer.pad_token_id)
+    # train_labels  = pad_sequence(train_labels, batch_first=True, padding_value=tokenizer.pad_token_id)
+    # test_labels  = pad_sequence(test_labels, batch_first=True, padding_value=tokenizer.pad_token_id)
     
     train_dataset = TransformerDataset(train_inputs, train_labels, train_lengths)
     test_dataset = TransformerDataset(test_inputs, test_labels, test_lengths)

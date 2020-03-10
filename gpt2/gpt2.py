@@ -8,7 +8,7 @@ from preprocess import load_transformer_dataset, load_gpt2_dataset
 from tqdm import tqdm
 
 hyper_params = {
-    "batch_size": 10,
+    "batch_size": 1,
     "num_epochs": 1,
     "learning_rate": 0.001,
     "embedding_size": 256

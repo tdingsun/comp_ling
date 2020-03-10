@@ -11,13 +11,6 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     the GPT-2 tokenizer to get the word ids. You don't need to create your own dictionary.
     """
 
-    # print(tokenizer.bos_token)
-    # print(tokenizer.bos_token_id)
-    # print(tokenizer.eos_token)
-    # print(tokenizer.eos_token_id)
-    # print(tokenizer.pad_token)
-    # print(tokenizer.pad_token_id)
-
     max_seq_len = get_max_seq_len(train_fn, test_fn) + 1
 
     train_inputs = []
@@ -25,7 +18,7 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     train_lengths = []
     with open(train_fn, 'r') as f:
         for line in f:
-            train_lengths.append(len(line) + 1)
+            train_lengths.append(len(line))
             encoded_line = tokenizer.encode(line, max_length=max_seq_len, pad_to_max_length=True)
             input_seq = [tokenizer.bos_token_id] + encoded_line[:-1]
             label = encoded_line
@@ -38,7 +31,7 @@ def load_transformer_dataset(train_fn, test_fn, tokenizer, batch_size):
     test_lengths = []
     with open(test_fn, 'r') as f:
         for line in f:
-            test_lengths.append(len(line) + 1)
+            test_lengths.append(len(line))
             encoded_line = tokenizer.encode(line, max_length=max_seq_len, pad_to_max_length=True)
             input_seq = [tokenizer.bos_token_id] + encoded_line[:-1]
             label = encoded_line

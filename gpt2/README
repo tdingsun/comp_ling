@@ -1,13 +1,47 @@
+Hyperparameters for Transformer:
+
+hyper_params = {
+    "batch_size": 20,
+    "num_epochs": 1,
+    "learning_rate": 0.001,
+    "embedding_size": 256
+ }
+
+GPT2 perplexity (without finetuning): 141 (https://www.comet.ml/siy3udd6/gpt2/1332d287d79344b781180a0cf2c112d8)
+
+Transformer perplexity: 38 (https://www.comet.ml/siy3udd6/gpt2/1d77f0fa1f2c42fb9bcc89ea9698a3fc)
+
+
 In your README, please note down:
 - A brief description talking about your rationale behind the hyperparameters during training
+
+    I just used the same hyperparameters as the last project, since I just used the same model.
+    This gave me good performance, and the GPT-2 encoding only helped bring my perplexity lower. 
 
 - When training your own transformer, what is the difference between the preprocess you did on the previous assignment
 and the preprocess you are doing right now?
 
+    Because I'm using the GPT-2 tokenizer, I did not have to keep track of my own word2id mapping/vocab. Also, the tokenizer had 
+    a built-in way to add padding that I was able to utilize. 
+
 - Give one positive and negative side about using the GPT-2 tokenizer for your own transformer
+
+    Positive: the tokenization might use BPE or some other sub-token encoding that helps with performance
+    Negative: The process is somewhat 'black-boxed', and it becomes more involved to try to add 
+    special tokens like padding. Also, the vocab size is already set, so that might work that well depending on the dataset.  
 
 - Compare the perplexities of both models. Which one is better? Why? Explain briefly.
 
+    My transformer gave me a better complexity of ~38, but I also could have fine-tuned the GPT2 model more, which, as I've heard from piazza,
+    had helped people drive down their complexity to around ~20. 
+
 - Is this a fair comparison? Why?
 
+    It's not really a fair comparison because the GPT2 model was pretrained on a lot more data than the transformer model is.
+    Also, in my implementation, I'm using 6 attention heads for the multi-layer attention, but with GPT2 the default is 12. 
+    In general, the GPT2 has a lot more parameters than my transformer model, depending on which sized GPT2 model was used.
+
 - What could be the advantages of using a pre-trained model? What is a possible use case? 
+
+    One advantage is that if the data that the pre-trained model was trained with is general enough, it can save a lot of time
+    and perform very well for a wide variety of tasks that depend on a language model that reflects the general english language (priveleged 'standard' written dialect).  

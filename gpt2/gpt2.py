@@ -8,7 +8,7 @@ from preprocess import load_transformer_dataset, load_gpt2_dataset
 from tqdm import tqdm
 
 hyper_params = {
-    "batch_size": 1,
+    "batch_size": 20,
     "num_epochs": 1,
     "learning_rate": 0.001,
     "embedding_size": 256
@@ -160,7 +160,7 @@ if __name__ == "__main__":
             test_transformer(model, test_loader, experiment, hyper_params)
     elif args.model == "gpt2":
         # Load the GPT2 model
-        model = GPT2LMHeadModel.from_pretrained('gpt2').to(device)
+        model = GPT2LMHeadModel().from_pretrained('gpt2').to(device)
         test_loader = load_gpt2_dataset(args.test_file, tokenizer, 1)
         test_gpt2(model, test_loader, experiment, hyper_params)
 

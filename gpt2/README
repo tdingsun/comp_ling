@@ -33,7 +33,10 @@ and the preprocess you are doing right now?
 - Compare the perplexities of both models. Which one is better? Why? Explain briefly.
 
     My transformer gave me a better complexity of ~38, but I also could have fine-tuned the GPT2 model more, which, as I've heard from piazza,
-    had helped people drive down their complexity to around ~20. 
+    had helped people drive down their complexity to around ~20. The data itself consists of a corpus of well-formed, standard english sentences, 
+    so I think that a pre-trained model like GPT2 is actually more suited to the task. In a zero-shot context, I would think that the 
+    pre-trained GPT2 model would not be as well suited.
+
 
 - Is this a fair comparison? Why?
 

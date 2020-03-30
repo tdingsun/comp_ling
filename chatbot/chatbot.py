@@ -48,7 +48,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
             experiment.log_metric("perplexity", perplexity)
 
 
-            if batch_num % 50 == 0:
+            if batch_num % 500 == 0:
                 print(perplexity)
                 torch.save(model.state_dict(), 'model.pt')
 

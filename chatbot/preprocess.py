@@ -37,8 +37,8 @@ def read_files(fn, tokenizer, max_len, batch_size):
             if " persona: " not in line:
                 #TODO: remove numbers? (sentence ids)
                 sen_res = line.strip().replace('\t', " " + tokenizer.sep_token + " ")
-                inpt = tokenizer.bos_token + " " + sen_res
-                label = sen_res + " " + tokenizer.eos_token
+                inpt = tokenizer.bos_token + sen_res
+                label = sen_res + tokenizer.eos_token
                 encoded_line = tokenizer.encode(inpt, max_length = max_len)
                 lengths.append(len(encoded_line))
                 inputs.append(torch.tensor(tokenizer.encode(inpt, max_length=max_len, pad_to_max_length=True)))

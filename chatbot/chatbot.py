@@ -11,9 +11,9 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 hyper_params = {
-     "batch_size": 64,
+     "batch_size": 25,
      "num_epochs": 10,
-     "learning_rate": 0.001,
+     "learning_rate": 0.0001,
      "window_size": 100
  }
 
@@ -34,11 +34,16 @@ def train(model, train_loader, optimizer, experiment, pad_index):
         for epoch in range(hyper_params['num_epochs']):
             total_loss = 0
             word_count = 0
+            batch_num = 0
             for batch in tqdm(train_loader):
                 x = batch['input_vectors'].to(DEVICE)
                 y = batch['label_vectors'].to(DEVICE)
                 outputs = model(x, labels=x)
                 _, logits = outputs[:2]
+                print(logits.shape)
+                print(y.shape)
+                print(torch.flatten(logits, 0, 1).shape)
+                print(torch.flatten(y, 0, 1).shape)
                 myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
                 myLoss.backward()
                 optimizer.step()

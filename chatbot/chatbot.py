@@ -40,14 +40,9 @@ def train(model, train_loader, optimizer, experiment, pad_index):
                 y = batch['label_vectors'].to(DEVICE)
                 outputs = model(x, labels=x)
                 _, logits = outputs[:2]
-                print(logits.shape)
-                print(y.shape)
-                print(torch.flatten(logits, 0, 1).shape)
-                print(torch.flatten(y, 0, 1).shape)
                 myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
                 myLoss.backward()
                 optimizer.step()
-                print(myLoss)
 
                 lengths = batch['lengths']
                 num_words_in_batch = torch.sum(lengths).item()

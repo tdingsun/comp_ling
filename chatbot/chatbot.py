@@ -11,7 +11,7 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 hyper_params = {
-     "batch_size": 128,
+     "batch_size": 64,
      "num_epochs": 10,
      "learning_rate": 0.001,
      "window_size": 100

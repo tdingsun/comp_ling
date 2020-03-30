@@ -11,9 +11,9 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 hyper_params = {
-     "batch_size": 20,
+     "batch_size": 128,
      "num_epochs": 10,
-     "learning_rate": 0.003,
+     "learning_rate": 0.001,
      "window_size": 100
  }
 
@@ -42,6 +42,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
                 myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
                 myLoss.backward()
                 optimizer.step()
+                print(myLoss)
 
                 lengths = batch['lengths']
                 num_words_in_batch = torch.sum(lengths).item()

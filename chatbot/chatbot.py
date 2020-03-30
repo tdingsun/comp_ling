@@ -30,29 +30,30 @@ def train(model, train_loader, optimizer, experiment, pad_index):
     loss_fn = nn.CrossEntropyLoss(ignore_index=pad_index)
     model = model.train()
 
-    batch_num = 0
     with experiment.train():
-        for batch in tqdm(train_loader):
-            x = batch['input_vectors'].to(DEVICE)
-            y = batch['label_vectors'].to(DEVICE)
-            outputs = model(x, labels=x)
-            _, logits = outputs[:2]
-            myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
-            myLoss.backward()
-            optimizer.step()
+        for epoch in range(hyper_params['num_epochs']):
+            total_loss = 0
+            word_count = 0
+            for batch in tqdm(train_loader):
+                x = batch['input_vectors'].to(DEVICE)
+                y = batch['label_vectors'].to(DEVICE)
+                outputs = model(x, labels=x)
+                _, logits = outputs[:2]
+                myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
+                myLoss.backward()
+                optimizer.step()
 
-            lengths = batch['lengths']
-            num_words_in_batch = torch.sum(lengths).item()
-            total_batch_loss = myLoss.item()*num_words_in_batch
-            perplexity = np.exp(total_batch_loss / num_words_in_batch)
+                lengths = batch['lenghts']
+                num_words_in_batch = torch.sum(lengths).item()
+                total_loss += myLoss.item()*num_words_in_batch
+                word_count += num_words_in_batch
+        
+            perplexity = np.exp(total_loss / word_count)
+            print("perplexity:", perplexity)
             experiment.log_metric("perplexity", perplexity)
+            torch.save(model.state_dict(), 'model.pt')
 
 
-            if batch_num % 500 == 0:
-                print(perplexity)
-                torch.save(model.state_dict(), 'model.pt')
-
-            batch_num += 1
 
 
 def test(model, test_loader, experiment, pad_index):

@@ -46,10 +46,10 @@ def train(model, train_loader, optimizer, experiment, pad_index):
             total_batch_loss = myLoss.item()*num_words_in_batch
             perplexity = np.exp(total_batch_loss / num_words_in_batch)
             experiment.log_metric("perplexity", perplexity)
-            print(perplexity)
 
 
             if batch_num % 50 == 0:
+                print(perplexity)
                 torch.save(model.state_dict(), 'model.pt')
 
             batch_num += 1

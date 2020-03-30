@@ -43,7 +43,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
                 myLoss.backward()
                 optimizer.step()
 
-                lengths = batch['lenghts']
+                lengths = batch['lengths']
                 num_words_in_batch = torch.sum(lengths).item()
                 total_loss += myLoss.item()*num_words_in_batch
                 word_count += num_words_in_batch
@@ -78,7 +78,7 @@ def test(model, test_loader, experiment, pad_index):
             myLoss.backward()
             optimizer.step()
 
-            lengths = batch['lenghts']
+            lengths = batch['lengths']
             num_words_in_batch = torch.sum(lengths).item()
             total_loss += myLoss.item()*num_words_in_batch
             word_count += num_words_in_batch

@@ -111,7 +111,7 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
     """
     # TODO: Write the generation function for interacting with trained model
     encoded_input = tokenizer.encode(tokenizer.bos_token + input + " " + tokenizer.sep_token)
-
+    print(encoded_input)
     for i in range(ntok):
         outputs = model(encoded_input)
         _, logits = outputs[:2]
@@ -154,7 +154,9 @@ if __name__ == "__main__":
     model.resize_token_embeddings(len(tokenizer))
     optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
     # Load the train, test DataLoader NOTE: Parse the data using GPT2 tokenizer
-    train_loader, test_loader = load_dataset(args.train_file, args.test_file, tokenizer, hyper_params["batch_size"], hyper_params["window_size"])
+
+    if not args.interactive:
+        train_loader, test_loader = load_dataset(args.train_file, args.test_file, tokenizer, hyper_params["batch_size"], hyper_params["window_size"])
     
     if args.load:
         model.load_state_dict(torch.load('model.pt'))

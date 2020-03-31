@@ -121,11 +121,12 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
         topk = torch.topk(predictions[-1, :], top_k)
         rand = random.randint(0, top_k-1)
         chosen_index = topk.indices[rand]
+        print(chosen_index)
         if (chosen_index == tokenizer.eos_token) or (chosen_index == tokenizer.sep_token):
             break
         encoded_input += [topk.indices[rand]]
 
-    response = tokenizer.decode(encoded_input[original_input_len:])
+    response = tokenizer.decode(encoded_input[original_input_len-1:])
     print(response)
 
 

@@ -28,7 +28,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
     :param experiment: comet.ml experiment object
     """
     # TODO: Write the training loop here, save trained model weights if needed
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_index)
     model = model.train()
 
     with experiment.train():
@@ -116,10 +116,12 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
         x = torch.tensor(encoded_input).to(DEVICE)
         outputs = model(x)
         predictions = outputs[0]
-        topk = torch.topk(predictions[-1, :], top_k)
+        topk = torch.topk(predictions[-1, :], top_k).indices
         rand = random.randint(0, top_k-1)
-        chosen_index = topk.indices[rand].item()
-        if (chosen_index == tokenizer.eos_token_id) or (chosen_index == tokenizer.sep_token_id):
+        chosen_index = topk[rand].item()
+        if chosen_index == tokenizer.sep_token_id:
+            chosen_index = topk[(rand + 1) % top_k].item()
+        if chosen_index == tokenizer.eos_token_id:
             break
         encoded_input += [chosen_index]
 

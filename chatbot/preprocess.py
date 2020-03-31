@@ -1,6 +1,7 @@
 from transformers import *
 from torch.utils.data import Dataset, DataLoader
 import torch
+import re
 
 
 def load_dataset(train_fn, test_fn, tokenizer, batch_size, window_size):
@@ -36,8 +37,10 @@ def read_files(fn, tokenizer, max_len, batch_size):
             #BOS, sentence, special token, repsonse, EOS
             if " persona: " not in line:
                 #TODO: remove numbers? (sentence ids)
-                sen_res = line.strip().replace('\t', " " + tokenizer.sep_token + " ")
+                sen_res = line.replace('\t', tokenizer.sep_token)
+                sen_res = re.sub('\d', '', sen_res).strip()
                 inpt = tokenizer.bos_token + sen_res
+                print(inpt)
                 label = sen_res + tokenizer.eos_token
                 encoded_line = tokenizer.encode(inpt, max_length = max_len)
                 lengths.append(len(encoded_line))

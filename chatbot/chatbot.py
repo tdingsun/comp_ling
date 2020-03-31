@@ -12,7 +12,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 hyper_params = {
      "batch_size": 25,
-     "num_epochs": 10,
+     "num_epochs": 2,
      "learning_rate": 0.0001,
      "window_size": 100
  }
@@ -43,10 +43,13 @@ def train(model, train_loader, optimizer, experiment, pad_index):
                 myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
                 myLoss.backward()
                 optimizer.step()
+                print(myLoss)
 
                 lengths = batch['lengths']
                 num_words_in_batch = torch.sum(lengths).item()
-                total_loss += myLoss.item()*num_words_in_batch
+                batch_loss = myLoss.item()*num_words_in_batch
+                
+                total_loss += batch_loss
                 word_count += num_words_in_batch
         
             perplexity = np.exp(total_loss / word_count)
@@ -95,7 +98,7 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
     :param input: an input string as prompt (i.e. How are you?)
     :param tokenizer: intialized tokenizer object for encoding the input
     :param model: the trained model to use for generate prediction
-    :param top_k: number of samples for top_l sampling
+    :param top_k: number of samples for top_k sampling
     :param ntok: maximum number of tokens to generate
 
     Comment: Feed in the input to the model to generate the most probable token
@@ -108,7 +111,17 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
     when printing out the response.
     """
     # TODO: Write the generation function for interacting with trained model
-    response = None
+    encoded_input = tokenizer.encode(tokenizer.bos_token + input + " " + tokenizer.sep_token)
+
+    for i in range(ntok):
+        outputs = model(encoded_input)
+        _, logits = outputs[:2]
+        topk = torch.topk(logits, top_k, dim=1)
+        print(topk.shape)
+        print(topk)
+        encoded_input += topk.indices[0]
+
+    response = encoded_input
     print(response)
 
 

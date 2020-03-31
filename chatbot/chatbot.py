@@ -66,7 +66,8 @@ def test(model, test_loader, experiment, pad_index):
         for batch in tqdm(test_loader):
             x = batch['input_vectors'].to(DEVICE)
             y = batch['label_vectors'].to(DEVICE)
-            outputs = model(x, labels=x)
+            masks = batch['attn_masks'].to(DEVICE)
+            outputs = model(x, labels=x, attention_mask=masks)
             _, logits = outputs[:2]
             myLoss = loss_fn(torch.flatten(logits, 0 , 1), torch.flatten(y, 0, 1))
             print(myLoss)

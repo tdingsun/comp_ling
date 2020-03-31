@@ -27,7 +27,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
     :param experiment: comet.ml experiment object
     """
     # TODO: Write the training loop here, save trained model weights if needed
-    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_index)
+    loss_fn = nn.CrossEntropyLoss()
     model = model.train()
 
     with experiment.train():
@@ -79,8 +79,7 @@ def test(model, test_loader, experiment, pad_index):
             outputs = model(x, labels=x)
             _, logits = outputs[:2]
             myLoss = loss_fn(torch.flatten(logits, 0 , 1), torch.flatten(y, 0, 1))
-            myLoss.backward()
-            optimizer.step()
+            print(myLoss)
 
             lengths = batch['lengths']
             num_words_in_batch = torch.sum(lengths).item()
@@ -159,6 +158,7 @@ if __name__ == "__main__":
     
     if args.load:
         model.load_state_dict(torch.load('model.pt'))
+        print("model loaded")
     if args.train:
         # run train loop here
         print("running training loop...")

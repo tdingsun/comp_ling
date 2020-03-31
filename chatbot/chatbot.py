@@ -14,7 +14,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 hyper_params = {
      "batch_size": 25,
      "num_epochs": 1,
-     "learning_rate": 0.000005,
+     "learning_rate": 0.000001,
      "window_size": 100
  }
 

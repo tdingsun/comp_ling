@@ -118,7 +118,8 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
         predictions = outputs[0]
         print(predictions.shape)
         topk = torch.topk(predictions[-1, :], top_k)
-        encoded_input += [topk.indices[0]]
+        rand = math.random.randint(0, 9)
+        encoded_input += [topk.indices[rand]]
 
     response = tokenizer.decode(encoded_input)
     print(response)

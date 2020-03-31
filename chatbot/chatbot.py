@@ -122,7 +122,9 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
         rand = random.randint(0, top_k-1)
         chosen_index = topk.indices[rand].item()
         print(chosen_index)
+
         if (chosen_index == tokenizer.eos_token) or (chosen_index == tokenizer.sep_token):
+            print("found")
             break
         encoded_input += [chosen_index]
 

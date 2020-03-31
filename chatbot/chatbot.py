@@ -13,7 +13,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 hyper_params = {
      "batch_size": 25,
      "num_epochs": 2,
-     "learning_rate": 0.00001,
+     "learning_rate": 0.000001,
      "window_size": 100
  }
 
@@ -27,7 +27,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
     :param experiment: comet.ml experiment object
     """
     # TODO: Write the training loop here, save trained model weights if needed
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_index)
     model = model.train()
 
     with experiment.train():
@@ -136,7 +136,7 @@ if __name__ == "__main__":
                         help="run training loop")
     parser.add_argument("-t", "--test", action="store_true",
                         help="run testing loop")
-    parser.add_argument("-i", "--interative", action="store_true",
+    parser.add_argument("-i", "--interactive", action="store_true",
                         help="run in interactive mode")
     args = parser.parse_args()
 
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         test(model, test_loader, experiment, pad_index)
     if args.interactive:
         # generate your own chat with the model here
-        print("running interative mode...")
+        print("running interctive mode...")
         while True:
             input_text = input("Please say something: ")
             interactive(input_text, tokenizer, model)

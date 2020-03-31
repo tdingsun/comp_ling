@@ -13,7 +13,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 hyper_params = {
      "batch_size": 25,
      "num_epochs": 2,
-     "learning_rate": 0.0001,
+     "learning_rate": 0.00001,
      "window_size": 100
  }
 
@@ -48,7 +48,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
                 lengths = batch['lengths']
                 num_words_in_batch = torch.sum(lengths).item()
                 batch_loss = myLoss.item()*num_words_in_batch
-                
+
                 total_loss += batch_loss
                 word_count += num_words_in_batch
         

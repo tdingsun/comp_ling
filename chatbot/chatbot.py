@@ -110,7 +110,7 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
     when printing out the response.
     """
     # TODO: Write the generation function for interacting with trained model
-    encoded_input = torch.tensor(tokenizer.encode(tokenizer.bos_token + input + " " + tokenizer.sep_token))
+    encoded_input = torch.tensor(tokenizer.encode(tokenizer.bos_token + input + " " + tokenizer.sep_token)).to(DEVICE)
     print(encoded_input)
     for i in range(ntok):
         outputs = model(encoded_input)

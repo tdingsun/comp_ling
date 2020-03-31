@@ -118,9 +118,11 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
         x = torch.tensor(encoded_input).to(DEVICE)
         outputs = model(x)
         predictions = outputs[0]
-        print(predictions.shape)
         topk = torch.topk(predictions[-1, :], top_k)
         rand = random.randint(0, top_k-1)
+        chosen_index = topk.indices[rand]
+        if (chosen_index == tokenizer.eos_token) or (chosen_index == tokenizer.sep_token):
+            break
         encoded_input += [topk.indices[rand]]
 
     response = tokenizer.decode(encoded_input[original_input_len:])

@@ -113,7 +113,6 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
     # TODO: Write the generation function for interacting with trained model
     encoded_input = tokenizer.encode(tokenizer.bos_token + input + " " + tokenizer.sep_token)
     original_input_len = len(encoded_input)
-    print(encoded_input)
     for i in range(ntok):
         x = torch.tensor(encoded_input).to(DEVICE)
         outputs = model(x)
@@ -121,9 +120,7 @@ def interactive(input, tokenizer, model, top_k=10, ntok=20):
         topk = torch.topk(predictions[-1, :], top_k)
         rand = random.randint(0, top_k-1)
         chosen_index = topk.indices[rand].item()
-        print(chosen_index)
         if (chosen_index == tokenizer.eos_token_id) or (chosen_index == tokenizer.sep_token_id):
-            print("found")
             break
         encoded_input += [chosen_index]
 

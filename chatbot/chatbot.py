@@ -14,7 +14,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 hyper_params = {
      "batch_size": 25,
      "num_epochs": 1,
-     "learning_rate": 0.000001,
+     "learning_rate": 0.000005,
      "window_size": 100
  }
 
@@ -33,28 +33,18 @@ def train(model, train_loader, optimizer, experiment, pad_index):
 
     with experiment.train():
         for epoch in range(hyper_params['num_epochs']):
-            total_loss = 0
-            word_count = 0
+
             for batch in tqdm(train_loader):
                 x = batch['input_vectors'].to(DEVICE)
                 y = batch['label_vectors'].to(DEVICE)
-                outputs = model(x, labels=x)
+                masks = batch['attn_masks'].to(DEVICE)
+                outputs = model(x, labels=x, attention_mask=masks)
                 _, logits = outputs[:2]
                 myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))
                 myLoss.backward()
                 optimizer.step()
                 print(myLoss)
 
-                lengths = batch['lengths']
-                num_words_in_batch = torch.sum(lengths).item()
-                batch_loss = myLoss.item()*num_words_in_batch
-
-                total_loss += batch_loss
-                word_count += num_words_in_batch
-        
-            perplexity = np.exp(total_loss / word_count)
-            print("perplexity:", perplexity)
-            experiment.log_metric("perplexity", perplexity)
             torch.save(model.state_dict(), 'model.pt')
 
 
@@ -158,8 +148,8 @@ if __name__ == "__main__":
     model = GPT2LMHeadModel.from_pretrained('gpt2').to(DEVICE)
     model.resize_token_embeddings(len(tokenizer))
     optimizer = torch.optim.Adam(model.parameters(), lr=hyper_params["learning_rate"])
-    # Load the train, test DataLoader NOTE: Parse the data using GPT2 tokenizer
 
+    # Load the train, test DataLoader NOTE: Parse the data using GPT2 tokenizer
     if not args.interactive:
         train_loader, test_loader = load_dataset(args.train_file, args.test_file, tokenizer, hyper_params["batch_size"], hyper_params["window_size"])
     

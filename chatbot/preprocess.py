@@ -28,6 +28,7 @@ def load_dataset(train_fn, test_fn, tokenizer, batch_size, window_size):
 def read_files(fn, tokenizer, max_len, batch_size):
     inputs = []
     labels = []
+    attn_masks = []
     lengths = []
 
     with open(fn, 'r') as f:
@@ -41,22 +42,26 @@ def read_files(fn, tokenizer, max_len, batch_size):
                 sen_res = re.sub('\d', '', sen_res).strip()
                 inpt = tokenizer.bos_token + sen_res
                 label = sen_res + tokenizer.eos_token
+                
                 encoded_line = tokenizer.encode(inpt, max_length = max_len)
                 lengths.append(len(encoded_line))
-                inputs.append(torch.tensor(tokenizer.encode(inpt, max_length=max_len, pad_to_max_length=True)))
-                labels.append(torch.tensor(tokenizer.encode(label, max_length=max_len, pad_to_max_length=True)))
 
-    dataset = ChatDataset(inputs, labels, lengths)
+                enc_out = tokenizer.encode_plus(inpt, max_length=max_len, pad_to_max_length=True, return_attention_mask=True)
+                inputs.append(torch.tensor(enc_out['input_ids']))
+                labels.append(torch.tensor(tokenizer.encode(label, max_length=max_len, pad_to_max_length=True)))
+                attn_masks.append(torch.tensor(enc_out['attention_mask']))
+    dataset = ChatDataset(inputs, labels, lengths, attn_masks)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     return data_loader
 
 
 
 class ChatDataset(Dataset):
-    def __init__(self, inputs, labels, lengths):
+    def __init__(self, inputs, labels, lengths, attn_masks):
         self.input_vectors = inputs
         self.label_vectors = labels
         self.lengths = lengths
+        self.attn_masks = attn_masks
     
     def __len__(self):
         return len(self.input_vectors)
@@ -65,7 +70,8 @@ class ChatDataset(Dataset):
         item = {
             "input_vectors": self.input_vectors[idx],
             "label_vectors": self.label_vectors[idx],
-            "lengths": self.lengths[idx]
+            "lengths": self.lengths[idx],
+            "attn_masks": self.attn_masks[idx]
         }
         return item
 

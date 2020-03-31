@@ -28,14 +28,13 @@ def train(model, train_loader, optimizer, experiment, pad_index):
     :param experiment: comet.ml experiment object
     """
     # TODO: Write the training loop here, save trained model weights if needed
-    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_index)
+    loss_fn = nn.CrossEntropyLoss()
     model = model.train()
 
     with experiment.train():
         for epoch in range(hyper_params['num_epochs']):
             total_loss = 0
             word_count = 0
-            batch_num = 0
             for batch in tqdm(train_loader):
                 x = batch['input_vectors'].to(DEVICE)
                 y = batch['label_vectors'].to(DEVICE)

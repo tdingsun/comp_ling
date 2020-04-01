@@ -2,8 +2,68 @@
 
 - Your test perplexity and the corresponding comet_ml hash
 
+    I trained my model for a total of two epochs:
+
+    Training/testing after one epoch
+    Test Perplexity: 99.30
+    https://www.comet.ml/siy3udd6/chatbot/4ef5caf36bd5490bb8957be609194b41
+
+    Training/testing after two epochs
+    Test Perplexity: 25.01
+    https://www.comet.ml/siy3udd6/chatbot/b8a52e7b19ff447495da7e2ff57be394
+
 - A brief description talking about your rationale behind the hyperparameters during training
+
+    hyper_params = {
+        "batch_size": 25,
+        "num_epochs": 1,
+        "learning_rate": 0.000001,
+        "window_size": 100
+    }
+
+    In the beginning while I was training, I noticed that my loss would oscillate a lot and not really progress,
+    so I iteratively lowered the learning rate until I was able to get a low enough loss and perplexity.
+
+    My batch size is 25, which is low but otherwise I ran out of memory. 
+
+    I kept my window size low at 100, in order to speed up training a little bit. 
 
 - Can you describe your implementation for generating the response given an prompt? 
 
+    First I encode the original input, adding a bos_token in the beginning and a sep_token after it. 
+    (separation token) I then feed that into the model, and get the top-k indices with the highest probabilities, and choose a random one to append to the input. If the chosen index is a separation index, I will choose 
+    the next one instead. If the chosen index is a eos_token, then I will break the sentence generation early. 
+    I repeat this process n times, and then finally decode the input. But first I remove the original input 
+    from the response I print.
+
 - Can your think of other ways to improve the current chatbot given the persona dataset
+
+    I wasn't able to get amazing results, but there is at least somewhat a continuation of a conversation thread.
+    To further improve the chatbot, I might try training with a larger window size, and try using a larger
+    pretrained GPT2 model. 
+
+    here is a sample of conversation:
+
+    Please say something: hello
+    (generated) good morning! what do i mean. what did your husband go to work out for you
+    Please say something: what husband
+    (generated) i do!!
+    Please say something: fine
+    (generated) it will be very hard getting a good job.. i work from time, what city you are 
+    Please say something: new york city
+    (generated) that makes my city very hot! its not the norm for my cats
+    Please say something: i hate cats
+    (generated) yeah cats do have cats.
+    Please say something: cats dont have cats
+    (generated) do dogs have any, but do have any in school i'm in elementary
+    Please say something: dogs dont have cats. I'm in college
+    (generated) you can have cats
+    Please say something: thanks
+    (generated) i am great what is wrong
+    Please say something: nothing is wrong
+    (generated) well it seems like your life would take a little break after all
+    Please say something: i need a break
+    (generated) what do you have to go to the beach with to? you like beach
+    Please say something: i hate the beach
+    (generated) yeah they have lots there and i like a boat, but it gets rough. i have not tried
+

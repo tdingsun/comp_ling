@@ -38,6 +38,7 @@ def train(model, train_loader, optimizer, experiment, pad_index):
                 x = batch['input_vectors'].to(DEVICE)
                 y = batch['label_vectors'].to(DEVICE)
                 masks = batch['attn_masks'].to(DEVICE)
+                optimizer.zero_grad()
                 outputs = model(x, labels=x, attention_mask=masks)
                 _, logits = outputs[:2]
                 myLoss = loss_fn(torch.flatten(logits, 0, 1), torch.flatten(y, 0, 1))

@@ -2,16 +2,61 @@ from torch import nn
 from torch.nn import functional as F
 import torch
 import numpy as np
+from torch.autograd import Variable
+import math
+
+
+class Positional_Encoding_Layer(nn.Module):
+    """
+    Right now is fixed using sin and cos, I could try just doing a learned thing if it doesnt work.
+    """
+    def __init__(self, window_size, embedding_size, dropout):
+        super(Positional_Encoding_Layer, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(window_size, embedding_size)
+        position = torch.arange(0, window_size).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, embedding_size, 2) * -(math.log(10000.0) / embedding_size))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + Variable(self.pe[:, :x.size(1)], requires_grad=False)
+        return self.dropout(x)
 
 
 class BERT(nn.Module):
     def __init__(self, seq_len, num_words, d_model=512, h=8, n=6):
         super().__init__()
         # TODO: Initialize BERT modules
+        self.seq_len = seq_len
+        self.num_words = num_words
+        self.d_model = d_model
+        self.hidden_size = 768
+        self.h = h
+        self.n = n
+        self.dropout = 0.1
+
+        self.embedding_layer = nn.Embedding(num_words, self.d_model)
+        self.positional_encoding_layer = Positional_Encoding_Layer(self.seq_len, self.d_model, self.dropout)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h)
+        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.n)
+
+        self.linear_1 = nn.Linear(self.d_model, self.hidden_size)
+        self.linear_2 = nn.Linear(self.hidden_size, self.num_words)
+
 
     def forward(self, x):
         # TODO: Write feed-forward step
-        pass
+        embeddings = self.embedding_layer(x)
+        out = self.positional_encoding_layer(embeddings)
+        out = self.transformer_encoder(out)
+        out = self.linear_1(out)
+        out = F.leaky_relu(out)
+        out = self.linear_2(out)
+        return out
 
     def get_embeddings(self, x):
         # TODO: Write function that returns BERT embeddings of a sequence

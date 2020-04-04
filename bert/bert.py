@@ -11,14 +11,15 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": None,
-    "batch_size": None,
-    "lr": None
+    "num_epochs": 1,
+    "batch_size": 20,
+    "lr": 0.0001,
+    "seq_len": 32
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def train(model, train_loader, loss_fn, optimizer, experiment, hyperparams):
+def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperparams):
     """
     Training loop that trains BERT model.
 
@@ -28,10 +29,21 @@ def train(model, train_loader, loss_fn, optimizer, experiment, hyperparams):
     - experiment: comet.ml experiment object
     - hyperparams: Hyperparameters dictionary
     """
-    model.train()
+    model = model.train()
     with experiment.train():
-        # TODO: Write training loop
-        pass
+        for e in range(hyperparams['num_epochs']):
+            for batch in tqdm(train_loader):
+                x = batch['input_vecs'].to(device)
+                y = batch['label_vecs'].to(device)
+
+                optimizer.zero_grad()
+
+                y_pred = model(x)
+                loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+                loss.backward()
+                optimizer.step()
+                print(loss.item())
+
 
 
 def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
@@ -44,15 +56,31 @@ def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
     - experiment: comet.ml experiment object
     - hyperparams: Hyperparameters dictionary
     """
-    model.eval()
+    model = model.eval()
+    total_loss = 0
+    word_count = 0
+    total_wrong = 0
     with experiment.test(), torch.no_grad():
         # TODO: Write testing loop
-        perplexity = None
-        accuracy = None
+        for batch in tqdm(test_loader):
+            x = batch['input_vecs'].to(device)
+            y = batch['label_vecs'].to(device)
+            y_pred = model(x)
+            loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+
+            num_words_in_batch = torch.nonzero(y).size(0)
+            total_loss += loss.item()*num_words_in_batch
+            word_count += num_words_in_batch
+
+            pred = torch.argmax(y_pred, -1)
+            pred = torch.where(y == 0, y, pred)
+            diff = pred - y
+            total_wrong += np.count_nonzero(diff.cpu())
+            
+        perplexity = np.exp(total_loss / word_count)
+        accuracy = 1 - (total_wrong / word_count)
         experiment.log_metric("perplexity", perplexity)
         experiment.log_metric("accuracy", accuracy)
-        pass
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -75,16 +103,16 @@ if __name__ == "__main__":
     experiment.log_parameters(hyperparams)
 
     # TODO: Load dataset
-    train_set = None
-    test_set = None
-    word2vec = None
-    train_loader = None
-    test_loader = None
-    num_tokens = None
+    train_set = MyDataset(args.train_file, hyperparams['seq_len'])
+    test_set = MyDataset(args.test_file, hyperparams['seq_len'], word2id=train_set.word2id)
+    word2vec = test_set.word2id
+    train_loader = DataLoader(train_set, batch_size=hyperparams['batch_size'], shuffle=True)
+    test_loader = DataLoader(test_set, batch_size=hyperparams['batch_size'], shuffle=False)
+    num_tokens = len(word2vec)
 
     model = BERT(hyperparams["seq_len"], num_tokens, n=2).to(device)
-    loss_fn = None
-    optimizer = None
+    loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["lr"])
 
     if args.load:
         model.load_state_dict(torch.load('./model.pt'))

@@ -28,7 +28,7 @@ class Positional_Encoding_Layer(nn.Module):
 
 
 class BERT(nn.Module):
-    def __init__(self, seq_len, num_words, d_model=512, h=8, n=6):
+    def __init__(self, seq_len, num_words, d_model=768, h=12, n=12):
         super().__init__()
         # TODO: Initialize BERT modules
         self.seq_len = seq_len

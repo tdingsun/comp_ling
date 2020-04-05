@@ -47,6 +47,7 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
 
                 if batch_id % 500 == 0:
                     print(loss.item())
+                batch_id += 1
 
 
 

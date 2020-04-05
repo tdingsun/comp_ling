@@ -17,7 +17,9 @@ class MyDataset(Dataset):
         contents = read_file(input_fn)
         contents = self.tokenize(contents)
         # Split data into fixed length sequences
-        sentences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
+        # sentences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
+        sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
+
         self.dataset_size = len(sentences)
         print(self.dataset_size)
         # Mask part of the data for BERT training

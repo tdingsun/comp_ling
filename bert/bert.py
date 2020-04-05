@@ -11,9 +11,9 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": 100,
+    "num_epochs": 50,
     "batch_size": 20,
-    "lr": 1e-4,
+    "lr": 2e-5,
     "seq_len": 32
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -47,8 +47,9 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
                 loss.backward()
                 optimizer.step()
 
-                if batch_id % 500 == 0:
+                if batch_id % 1500 == 0:
                     print(loss.item())
+                    torch.save(model.state_dict(), './model.pt')
                 batch_id += 1
 
 

@@ -41,7 +41,7 @@ class BERT(nn.Module):
 
         self.embedding_layer = nn.Embedding(num_words, self.d_model)
         self.positional_encoding_layer = Positional_Encoding_Layer(self.seq_len, self.d_model, self.dropout)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h, dim_feedforward=(self.hidden_size*4))
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.n)
 
         self.linear = nn.Linear(self.d_model, self.num_words)

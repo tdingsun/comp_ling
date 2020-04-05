@@ -40,7 +40,8 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
                 #should input be s x n x e? seq_len x batch_size x embedding?
 
                 #mask: everywhere label is not zero
-                # mask = y == 0
+                # mask = y != 0 #true where not zero, flase everywhere else
+
                 # print(mask)
 
                 optimizer.zero_grad()

@@ -42,13 +42,13 @@ class BERT(nn.Module):
 
         self.linear = nn.Linear(self.d_model, self.num_words)
 
-    def forward(self, x):
+    def forward(self, x, mask):
         # TODO: Write feed-forward step
         embeddings = self.embedding_layer(x)
         out = self.dropout(embeddings)
         out = self.positional_encoding_layer(out)
         out = torch.transpose(out, 0, 1)
-        out = self.transformer_encoder(out)
+        out = self.transformer_encoder(out, src_key_padding_mask=mask)
         out = self.linear(out)
         out = torch.transpose(out, 0, 1)
         return out

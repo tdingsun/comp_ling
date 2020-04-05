@@ -38,15 +38,16 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
                 y = batch['label_vecs'].to(device)
 
                 #should input be s x n x e? seq_len x batch_size x embedding?
-
+                # mask = y.byte()
+                # mask[mask!=0] = float('-inf')
                 #mask: everywhere label is not zero
-                # mask = y != 0 #true where not zero, flase everywhere else
+                mask = y != 0 #true where not zero, flase everywhere else
 
                 # print(mask)
 
                 optimizer.zero_grad()
 
-                y_pred = model(x)
+                y_pred = model(x, mask)
                 loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
                 loss.backward()
                 optimizer.step()

@@ -12,7 +12,7 @@ from tqdm import tqdm  # optional progress bar
 # TODO: Set hyperparameters
 hyperparams = {
     "num_epochs": 40,
-    "batch_size": 256,
+    "batch_size": 128,
     "lr": 1e-4,
     "seq_len": 128
 }

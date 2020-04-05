@@ -11,10 +11,10 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": 2,
+    "num_epochs": 1,
     "batch_size": 20,
     "lr": 0.000001,
-    "seq_len": 64
+    "seq_len": 32
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

@@ -49,7 +49,7 @@ class MyDataset(Dataset):
         tokenized_content = []
         for word in contents:
             if word not in self.word2id:
-                self.word2id[word] = len(self.word2id) + 1
+                self.word2id[word] = len(self.word2id)
             tokenized_content.append(self.word2id[word])
         return tokenized_content
     

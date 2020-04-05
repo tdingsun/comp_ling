@@ -114,6 +114,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_set, batch_size=hyperparams['batch_size'], shuffle=True)
     test_loader = DataLoader(test_set, batch_size=hyperparams['batch_size'], shuffle=False)
     num_tokens = len(word2vec)
+    print(num_tokens)
 
     model = BERT(hyperparams["seq_len"], num_tokens, n=2).to(device)
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)

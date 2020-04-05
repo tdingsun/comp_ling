@@ -11,10 +11,10 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": 1,
+    "num_epochs": 2,
     "batch_size": 20,
-    "lr": 0.0001,
-    "seq_len": 32
+    "lr": 0.001,
+    "seq_len": 64
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -84,8 +84,11 @@ def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
             
         perplexity = np.exp(total_loss / word_count)
         accuracy = 1 - (total_wrong / word_count)
+        print(perplexity)
+        print(accuracy)
         experiment.log_metric("perplexity", perplexity)
         experiment.log_metric("accuracy", accuracy)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -114,7 +117,6 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_set, batch_size=hyperparams['batch_size'], shuffle=True)
     test_loader = DataLoader(test_set, batch_size=hyperparams['batch_size'], shuffle=False)
     num_tokens = len(word2vec)
-    print(num_tokens)
 
     model = BERT(hyperparams["seq_len"], num_tokens, n=2).to(device)
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)

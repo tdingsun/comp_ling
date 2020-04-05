@@ -76,6 +76,7 @@ def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
 
             y_pred = model(x, mask)
             loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+            print(loss.item())
 
             num_words_in_batch = torch.nonzero(y).size(0)
             total_loss += loss.item()*num_words_in_batch

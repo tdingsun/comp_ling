@@ -47,8 +47,12 @@ class BERT(nn.Module):
         embeddings = self.embedding_layer(x)
         out = self.dropout(embeddings)
         out = self.positional_encoding_layer(out)
+        print(out.shape) # batch size x seq_len x features
+        out = torch.transpose(out, 0, 1)
+        print(out.shape)
         out = self.transformer_encoder(out)
         out = self.linear(out)
+        out = torch.transpose(out, 0, 1)
         return out
 
     def get_embeddings(self, x):

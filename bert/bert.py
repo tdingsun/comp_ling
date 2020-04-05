@@ -14,7 +14,7 @@ hyperparams = {
     "num_epochs": 100,
     "batch_size": 32,
     "lr": 0.000001,
-    "seq_len": 128
+    "seq_len": 64
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -36,6 +36,12 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
             for batch in tqdm(train_loader):
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
+
+                #should input be s x n x e? seq_len x batch_size x embedding?
+
+                #mask: everywhere label is not zero
+                # mask = y == 0
+                # print(mask)
 
                 optimizer.zero_grad()
 

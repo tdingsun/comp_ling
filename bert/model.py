@@ -35,6 +35,7 @@ class BERT(nn.Module):
         self.n = n
 
         self.embedding_layer = nn.Embedding(num_words, self.d_model)
+        self.dropout = nn.Dropout(p=0.1)
         self.positional_encoding_layer = Positional_Encoding_Layer(self.seq_len, self.d_model)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h, dim_feedforward=(self.d_model*4))
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.n)
@@ -44,7 +45,8 @@ class BERT(nn.Module):
     def forward(self, x):
         # TODO: Write feed-forward step
         embeddings = self.embedding_layer(x)
-        out = self.positional_encoding_layer(embeddings)
+        out = self.dropout(embeddings)
+        out = self.positional_encoding_layer(out)
         out = self.transformer_encoder(out)
         out = self.linear(out)
         return out

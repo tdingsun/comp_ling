@@ -29,6 +29,7 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
     - experiment: comet.ml experiment object
     - hyperparams: Hyperparameters dictionary
     """
+    batch_id = 0
     model = model.train()
     with experiment.train():
         for e in range(hyperparams['num_epochs']):
@@ -42,7 +43,10 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
                 loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
                 loss.backward()
                 optimizer.step()
-                print(loss.item())
+
+
+                if batch_id % 500 == 0:
+                    print(loss.item())
 
 
 

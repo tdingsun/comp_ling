@@ -72,7 +72,9 @@ def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
         for batch in tqdm(test_loader):
             x = batch['input_vecs'].to(device)
             y = batch['label_vecs'].to(device)
-            y_pred = model(x)
+            mask = y != 0 #true where not zero, flase everywhere else
+
+            y_pred = model(x, mask)
             loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
 
             num_words_in_batch = torch.nonzero(y).size(0)

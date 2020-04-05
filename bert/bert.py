@@ -33,12 +33,11 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
     model = model.train()
     with experiment.train():
         for e in range(hyperparams['num_epochs']):
-            optimizer.zero_grad()
-
             for batch in tqdm(train_loader):
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
 
+                optimizer.zero_grad()
 
                 y_pred = model(x)
                 loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))

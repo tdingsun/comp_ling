@@ -12,8 +12,6 @@ class Positional_Encoding_Layer(nn.Module):
     """
     def __init__(self, window_size, embedding_size):
         super(Positional_Encoding_Layer, self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
         pe = torch.zeros(window_size, embedding_size).float()
         position = torch.arange(0, window_size).float().unsqueeze(1)
         div_term = torch.exp(torch.arange(0, embedding_size, 2).float() * -(math.log(10000.0) / embedding_size))

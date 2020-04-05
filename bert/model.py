@@ -42,6 +42,7 @@ class BERT(nn.Module):
 
         self.linear = nn.Linear(self.d_model, self.num_words)
 
+
     def forward(self, x, mask):
         # TODO: Write feed-forward step
         embeddings = self.embedding_layer(x)

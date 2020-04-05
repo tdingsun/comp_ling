@@ -11,10 +11,10 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": 5,
-    "batch_size": 20,
-    "lr": 5e-5,
-    "seq_len": 32
+    "num_epochs": 40,
+    "batch_size": 256,
+    "lr": 1e-4,
+    "seq_len": 64
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -32,27 +32,22 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
     batch_id = 0
     model = model.train()
     with experiment.train():
-        for e in range(hyperparams['num_epochs']):
-            for batch in tqdm(train_loader):
-                x = batch['input_vecs'].to(device)
-                y = batch['label_vecs'].to(device)
-                #should input be s x n x e? seq_len x batch_size x embedding?
-                #mask: everywhere label is not zero
-                mask = y != 0 #true where not zero, flase everywhere else
+        for batch in tqdm(train_loader):
+            x = batch['input_vecs'].to(device)
+            y = batch['label_vecs'].to(device)
+            mask = y != 0 #true where not zero, flase everywhere else
 
-                optimizer.zero_grad()
+            optimizer.zero_grad()
 
-                y_pred = model(x, mask)
-                loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
-                loss.backward()
-                optimizer.step()
+            y_pred = model(x, mask)
+            loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+            loss.backward()
+            optimizer.step()
 
-                if batch_id % 1500 == 0:
-                    print(loss.item())
-                    torch.save(model.state_dict(), './model.pt')
-                batch_id += 1
-
-
+            if batch_id % 1500 == 0:
+                print(loss.item())
+                torch.save(model.state_dict(), './model.pt')
+            batch_id += 1
 
 def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
     """
@@ -131,8 +126,9 @@ if __name__ == "__main__":
         print("loading model")
         model.load_state_dict(torch.load('./model.pt'))
     if args.train:
-        train(model, train_loader, loss_fn, optimizer, word2vec, experiment,
-              hyperparams)
+        for e in range(hyperparams['num_epochs']):
+            train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperparams)
+            test(model, test_loader, loss_fn, word2vec, experiment, hyperparams)
     if args.test:
         test(model, test_loader, loss_fn, word2vec, experiment, hyperparams)
     if args.save:

@@ -11,9 +11,9 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": 1,
-    "batch_size": 20,
-    "lr": 0.000001,
+    "num_epochs": 3,
+    "batch_size": 32,
+    "lr": 2e-5,
     "seq_len": 32
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -66,7 +66,6 @@ def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
     word_count = 0
     total_wrong = 0
     with experiment.test(), torch.no_grad():
-        # TODO: Write testing loop
         for batch in tqdm(test_loader):
             x = batch['input_vecs'].to(device)
             y = batch['label_vecs'].to(device)

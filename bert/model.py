@@ -44,18 +44,14 @@ class BERT(nn.Module):
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.n)
 
-        self.linear_1 = nn.Linear(self.d_model, self.hidden_size)
-        self.linear_2 = nn.Linear(self.hidden_size, self.num_words)
-
+        self.linear = nn.Linear(self.d_model, self.num_words)
 
     def forward(self, x):
         # TODO: Write feed-forward step
         embeddings = self.embedding_layer(x)
         out = self.positional_encoding_layer(embeddings)
         out = self.transformer_encoder(out)
-        out = self.linear_1(out)
-        out = F.leaky_relu(out)
-        out = self.linear_2(out)
+        out = self.linear(out)
         return out
 
     def get_embeddings(self, x):

@@ -11,7 +11,7 @@ from tqdm import tqdm  # optional progress bar
 
 # TODO: Set hyperparameters
 hyperparams = {
-    "num_epochs": 50,
+    "num_epochs": 20,
     "batch_size": 20,
     "lr": 1e-4,
     "seq_len": 32
@@ -127,6 +127,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["lr"])
 
     if args.load:
+        print("loading model")
         model.load_state_dict(torch.load('./model.pt'))
     if args.train:
         train(model, train_loader, loss_fn, optimizer, word2vec, experiment,

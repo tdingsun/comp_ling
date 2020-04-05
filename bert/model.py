@@ -10,21 +10,20 @@ class Positional_Encoding_Layer(nn.Module):
     """
     Right now is fixed using sin and cos, I could try just doing a learned thing if it doesnt work.
     """
-    def __init__(self, window_size, embedding_size, dropout):
+    def __init__(self, window_size, embedding_size):
         super(Positional_Encoding_Layer, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
 
-        pe = torch.zeros(window_size, embedding_size)
-        position = torch.arange(0, window_size).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, embedding_size, 2) * -(math.log(10000.0) / embedding_size))
+        pe = torch.zeros(window_size, embedding_size).float()
+        position = torch.arange(0, window_size).float().unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, embedding_size, 2).float() * -(math.log(10000.0) / embedding_size))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + Variable(self.pe[:, :x.size(1)], requires_grad=False)
-        return self.dropout(x)
+        return x + Variable(self.pe[:, :x.size(1)], requires_grad=False)
 
 
 class BERT(nn.Module):
@@ -34,14 +33,12 @@ class BERT(nn.Module):
         self.seq_len = seq_len
         self.num_words = num_words
         self.d_model = d_model
-        self.hidden_size = 768
         self.h = h
         self.n = n
-        self.dropout = 0.1
 
         self.embedding_layer = nn.Embedding(num_words, self.d_model)
-        self.positional_encoding_layer = Positional_Encoding_Layer(self.seq_len, self.d_model, self.dropout)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h, dim_feedforward=(self.hidden_size*4))
+        self.positional_encoding_layer = Positional_Encoding_Layer(self.seq_len, self.d_model)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=self.h, dim_feedforward=(self.d_model*4))
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.n)
 
         self.linear = nn.Linear(self.d_model, self.num_words)

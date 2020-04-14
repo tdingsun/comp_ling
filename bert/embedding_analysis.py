@@ -49,15 +49,14 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
         "run": ["run", "runs", "running", "ran"]
     }
 
-
-
     for key in polysemous_words:
         # TODO: Find all instances of sentences that have polysemous words.
-
+        print("should reset")
         embeddings_for_plot = []
         texts = []
         
         for word in polysemous_words[key]:
+            print(word)
             if word in word2vec:
                 wid = word2vec[word]
             else:

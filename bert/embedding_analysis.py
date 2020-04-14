@@ -86,7 +86,7 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
                     embeddings_for_plot.append(word_embedding)
                     texts.append(word)                
 
-        plot_embeddings(texts, np.array(embeddings_for_plot), key)
+        plot_embeddings(texts, torch.tensor(embeddings_for_plot).numpy(), key)
 
 
         # TODO: Give these sentences as input, and obtain the specific word

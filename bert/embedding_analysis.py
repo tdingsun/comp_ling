@@ -31,7 +31,7 @@ def plot_embeddings(texts, embeddings, plot_name):
     plt.savefig(plot_name, dpi=100)
 
 
-def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2vec):
+def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2vec, device):
     """
     Create embedding analysis image for each list of polysemous words and
     upload them to comet.ml.
@@ -74,6 +74,7 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
             print(len(sentences))
 
             for s in sentences:
+                s.to(device)
                 position = s.tolist().index(wid)
                 embedding = model.get_embeddings(s)
                 embedding = embedding.view(64, 768)

@@ -56,4 +56,9 @@ class BERT(nn.Module):
 
     def get_embeddings(self, x):
         # TODO: Write function that returns BERT embeddings of a sequence
-        pass
+        embeddings = self.embedding_layer(x)
+        out = self.dropout(embeddings)
+        out = self.positional_encoding_layer(out)
+        out = torch.transpose(out, 0, 1)
+        out = self.transformer_encoder(out)
+        return out

@@ -31,7 +31,7 @@ def plot_embeddings(texts, embeddings, plot_name):
     plt.savefig(plot_name, dpi=100)
 
 
-def embedding_analysis(model, experiment, train_set, test_set):
+def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2vec):
     """
     Create embedding analysis image for each list of polysemous words and
     upload them to comet.ml.
@@ -45,17 +45,53 @@ def embedding_analysis(model, experiment, train_set, test_set):
     polysemous_words = {
         "figure": ["figure", "figured", "figures"],
         "state": ["state", "states", "stated"],
-        "bank": ["bank", "banks", "banked"]
+        "bank": ["bank", "banks", "banked"],
+        "run": ["run", "runs", "running", "ran"]
     }
+
+
 
     for key in polysemous_words:
         # TODO: Find all instances of sentences that have polysemous words.
+
+        embeddings_for_plot = []
+        texts = []
+        
+
+        for word in polysemous_words[key]:
+            if word in word2vec:
+                wid = word2vec[word]
+            else:
+                continue
+
+            sentences = []
+            for s in train_set:
+                if wid in s['input_vecs']:
+                    sentences.append(s['input_vecs'])
+            for s in test_set:
+                if wid in s['input_vecs']:
+                    sentences.append(s['input_vecs'])
+            print(len(sentences))
+
+            for s in sentences:
+                position = s.tolist().index(wid)
+                print(position)
+                embedding = model.get_embeddings(s)
+                embedding = embedding.view(64, 768)
+ 
+                word_embedding = embedding[position, :]
+                embeddings_for_plot.append(word_embedding)
+                texts.append(word)
+
+        plot_embeddings(texts, np.array(embeddings_for_plot), key)
+
 
         # TODO: Give these sentences as input, and obtain the specific word
         #       embedding as output.
 
         # TODO: Use the plot_embeddings function above to plot the sentence
         #       and embeddings in two-dimensional space.
+
 
         # TODO: Save the plot as "{word}.png"
         experiment.log_image(f"{key}.png")

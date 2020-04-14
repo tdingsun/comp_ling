@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
     if args.load:
         print("loading model")
-        model.load_state_dict(torch.load('./model.pt'))
+        model.load_state_dict(torch.load('./model.pt', map_location=torch.device('cpu')))
     if args.train:
         for e in range(hyperparams['num_epochs']):
             train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperparams)
@@ -135,4 +135,4 @@ if __name__ == "__main__":
         torch.save(model.state_dict(), './model.pt')
     if args.analysis:
         embedding_analysis(model, experiment, train_set, test_set,
-                           hyperparams["batch_size"])
+                           hyperparams["batch_size"], word2vec)

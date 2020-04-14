@@ -75,7 +75,6 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
 
             for s in sentences:
                 position = s.tolist().index(wid)
-                print(position)
                 embedding = model.get_embeddings(s)
                 embedding = embedding.view(64, 768)
  

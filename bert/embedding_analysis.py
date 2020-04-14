@@ -52,12 +52,10 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
 
     for key in polysemous_words:
         # TODO: Find all instances of sentences that have polysemous words.
-        print("should reset")
         embeddings_for_plot = []
         texts = []
         
         for word in polysemous_words[key]:
-            print(word)
             if word in word2vec:
                 wid = word2vec[word]
             else:
@@ -86,7 +84,6 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
                     texts.append(word)
 
         embeddings_for_plot = torch.stack(embeddings_for_plot)
-        print(texts)
         plot_embeddings(texts, embeddings_for_plot.cpu().detach().numpy(), key)
 
 

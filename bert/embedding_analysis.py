@@ -85,7 +85,7 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
                     word_embedding = embedding[position, :]
                     embeddings_for_plot.append(word_embedding)
                     texts.append(word)
-        embeddings_for_plot = torch.tensor(embeddings_for_plot)
+        embeddings_for_plot = torch.stack(embeddings_for_plot)
 
         plot_embeddings(texts, embeddings_for_plot.cpu().detach().numpy(), key)
 

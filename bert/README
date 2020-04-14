@@ -1,11 +1,48 @@
+Link to training/testing:
+https://www.comet.ml/siy3udd6/bert/026df168cb554d529524e979e883d491
+
+Experiment with embedding plots:
+https://www.comet.ml/siy3udd6/bert/415c074b51fc4d2289fdaccd0696d6c0?experiment-tab=images
+
+
 In your README, please note down:
 
 - A brief description talking about your rationale behind the 
   hyperparameters used
 
+  Hyperparameters:
+    Batch size: 128
+    Learning rate: 1e-4
+    num epochs: 40
+    sequence length: 64 
+
+  After some experimentation, I found that a longer sequence length and a larger batch size 
+  made training a lot more stable. I trained for 40 epochs because that's how long I could train for
+  within 20 minutes.
+
 
 - A discussion on the embedding plots, for each word. Are there 
   any discernible patterns? Does the distribution seem random?
+
+  In general, all of the different words clustered as expected according to context.
+  The distribution definitely was not random.
+
+  Figure:
+    The words 'figure', 'figures', and 'figured' formed separate clusters.
+    There were two instances of the word 'figured' that formed their own mini-cluster far from the main cluster,
+    probably due to being a different meaning of the word.
+
+  State:
+    The cluster for 'state' was much larger than the other clusters. This might be due to the word being a lot more
+    common and having a lot more varied meanings. The word 'stated' formed two separate clusters, probably due to multiple meanings.
+
+  Bank:
+    This one looked pretty straight forward, the words "banks" and "bank" formed their own clusters.
+
+  Run:
+    I added my own polysemous words, "run", "runs", "running", and "ran". As expected, all of these formed their own clusters, although there
+    were some outliers of runds and ran. The word "run" had the largest and most spread out cluster, probably due to its commonality, and the fact
+    that the word "run" can take on many different meanings depending on context.
 
 
 
@@ -15,11 +52,25 @@ Further, please answer the following written questions:
   to create word representations, compared to other methods such as the 
   embeddings matrix that we have used throughout the semester?
 
+  The biggest advantage is that using BERT creates words representations that 
+  encode the context in which the word is found in. However, the disadvantage
+  is the computational cost needed to generate them.  
+
 
 - What is the purpose of masking in the way described in the paper 
   (as compared to the masking that was done in the previous assignment?) 
   Furthermore, why do we replace words with the mask token only 80% of
   the time?
+
+  The purpose of masking out 15% of words and having the model predict them is
+  so that the attention heads have access to the entire context except for itself. 
+
+  We replace words with the mask token only 80% of the time, because then sometimes
+  the model can reinforce the correct answer (when we replace the input word with the same word)
+  Also, because the input word is sometimes replaced by a random word, the model can't know
+  which word it's being asked to predict, so it will have to learn contextual information for
+  all of the words in the input sequence. Lastly, because the mask token isn't present in fine tuning,
+  it can't always be what the model is trained on.
 
 
 - Suppose that you will adapt your model for the SWAG (Situations With 
@@ -29,3 +80,17 @@ Further, please answer the following written questions:
   architecture, data preprocessing, and the training process) to achieve this. 
   (Hint: begin by considering Task #2 of the original BERT model, described 
   in Section 3.3.2.)
+
+  After pretraining the BERT Model, we would have to fine tune the model to perform
+  well on this more specific downstream task.
+
+  The data would have to be preprocessed by placing a special token between the question and answer.
+  We would also have to add segment embeddings to help the model differentiate between question and answer.
+
+  Our labels would also be different because instead of trying to predict what a word should be, 
+  we are trying to classify whether or not the second sentence in the input is correct.
+  
+  The model architecture would basically be the same. 
+
+
+

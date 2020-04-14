@@ -29,6 +29,7 @@ def plot_embeddings(texts, embeddings, plot_name):
     fig = plt.gcf()
     fig.set_size_inches(20, 20)
     plt.savefig(plot_name, dpi=100)
+    plt.close()
 
 
 def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2vec, device):

@@ -64,24 +64,27 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
             else:
                 continue
 
-            sentences = []
             for s in train_set:
                 if wid in s['input_vecs']:
-                    sentences.append(s['input_vecs'])
+                    x = s['input_vecs'].to(device)
+                    embedding = model.get_embeddings(x)
+                    embedding = embedding.view(64, 768)
+
+                    position = s['input_vecs'].tolist().index(wid)
+                    word_embedding = embedding[position, :]
+                    embeddings_for_plot.append(word_embedding)
+                    texts.append(word)
+
             for s in test_set:
                 if wid in s['input_vecs']:
-                    sentences.append(s['input_vecs'])
-            print(len(sentences))
+                    x = s['input_vecs'].to(device)
+                    embedding = model.get_embeddings(x)
+                    embedding = embedding.view(64, 768)
 
-            for s in sentences:
-                s = s.to(device)
-                embedding = model.get_embeddings(s)
-                embedding = embedding.view(64, 768)
-
-                position = s.tolist().index(wid)
-                word_embedding = embedding[position, :]
-                embeddings_for_plot.append(word_embedding)
-                texts.append(word)
+                    position = s['input_vecs'].tolist().index(wid)
+                    word_embedding = embedding[position, :]
+                    embeddings_for_plot.append(word_embedding)
+                    texts.append(word)                
 
         plot_embeddings(texts, np.array(embeddings_for_plot), key)
 

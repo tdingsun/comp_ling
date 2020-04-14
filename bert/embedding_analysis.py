@@ -74,10 +74,10 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
             print(len(sentences))
 
             for s in sentences:
-                s.to(device)
+                s = s.to(device)
                 embedding = model.get_embeddings(s)
                 embedding = embedding.view(64, 768)
-                
+
                 position = s.tolist().index(wid)
                 word_embedding = embedding[position, :]
                 embeddings_for_plot.append(word_embedding)

@@ -85,6 +85,7 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
                     texts.append(word)
 
         embeddings_for_plot = torch.stack(embeddings_for_plot)
+        print(texts)
         plot_embeddings(texts, embeddings_for_plot.cpu().detach().numpy(), key)
 
 
@@ -93,7 +94,5 @@ def embedding_analysis(model, experiment, train_set, test_set, batch_size, word2
 
         # TODO: Use the plot_embeddings function above to plot the sentence
         #       and embeddings in two-dimensional space.
-
-
         # TODO: Save the plot as "{word}.png"
         experiment.log_image(f"{key}.png")

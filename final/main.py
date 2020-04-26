@@ -12,17 +12,16 @@ from tqdm import tqdm  # optional progress bar
 # TODO: Set hyperparameters
 hyperparams = {
     "num_epochs": 10,
-    "lr": 1e-4,
+    "lr": 1.0,
     "lstm_batch_size": 20,
     "lstm_seq_len": 35,
-    "cnn_batch_size": 700,
     "word_embed_size": 300,
     "char_embed_size": 15
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperparams):
+def train(model, train_loader, loss_fn, word2vec, experiment, hyperparams):
     """
     Training loop that trains BERT model.
 
@@ -33,31 +32,72 @@ def train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperpa
     - hyperparams: Hyperparameters dictionary
     """
 
+    learning_rate = hyperparams[lr]
+    old_ppl = 100000
+    best_ppl = 100000
+
     hidden = (to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])), 
               to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])))
 
-    batch_id = 0
-    model = model.train()
     with experiment.train():
-        for batch in tqdm(train_loader):
-            optimizer.zero_grad()
+        batch_id = 0
+        
+        for epoch in range(hyperparams["num_epochs"]):
+            # VALIDATION
+            model = model.eval()
+            loss_batch = []
+            ppl_batch = []
 
-            x = batch['input_vecs'].to(device)
-            y = batch['label_vecs'].to(device)
-            mask = y != 0 #true where not zero, flase everywhere else
-            hidden = [state.detach() for state in hidden]
-            output, hidden = model(x, hidden)
+            for batch in tqdm(valid_loader):
+                x = batch['input_vecs'].to(device)
+                y = batch['label_vecs'].to(device)
+                hidden = [state.detach() for state in hidden]
+                v_output, hidden = model(x, hidden)
 
-            loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+                loss = loss_fn(torch.flatten(v_output, 0, 1), torch.flatten(y, 0, 1))
+                ppl = torch.exp(loss.data)
+                loss_batch.append(float(loss))
+                ppl_batch.append(float(ppl))
             
-            loss.backward()
-            torch.nn.utils.clip_grad_norm(model.parameters(), 5, norm_type=2)
-            optimizer.step()
+            ppl = np.mean(ppl_batch)
+            print("[epoch {}] valid PPL={}".format(epoch, PPL))
+            print("valid loss={}".format(np.mean(loss_batch)))
+            print("PPL decrease={}".format(float(old_PPL - PPL)))
 
-            if batch_id % 1500 == 0:
-                print(loss.item())
+            if best_ppl > ppl:
+                best_ppl = ppl
                 torch.save(model.state_dict(), './model.pt')
-            batch_id += 1
+
+            if float(old_ppl - ppl) <= 1.0:
+                learning_rate /= 2
+                print("halved lr:{}".format(learning_rate))
+            
+            old_ppl = ppl
+
+            # TRAINING
+            model = model.train()
+            optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate, momentum = 0.85)
+            for batch in tqdm(train_loader):
+                optimizer.zero_grad()
+
+                x = batch['input_vecs'].to(device)
+                y = batch['label_vecs'].to(device)
+                mask = y != 0 #true where not zero, flase everywhere else
+                hidden = [state.detach() for state in hidden]
+                output, hidden = model(x, hidden)
+
+                loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+                
+                loss.backward()
+                torch.nn.utils.clip_grad_norm(model.parameters(), 5, norm_type=2)
+                optimizer.step()
+
+                if (batch_id + 1) % 100 == 0:
+                    print(loss.item())
+                batch_id += 1
+        torch.save(model.state_dict(), './model.pt')
+        print("Training finished")
+
 
 def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
     """
@@ -73,31 +113,28 @@ def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
     total_loss = 0
     word_count = 0
     total_wrong = 0
+
+    hidden = (to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])), 
+              to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])))
+
     with experiment.test(), torch.no_grad():
+
         for batch in tqdm(test_loader):
             x = batch['input_vecs'].to(device)
             y = batch['label_vecs'].to(device)
-            mask = y != 0 #true where not zero, flase everywhere else
+            hidden = [state.detach() for state in hidden]
 
-            y_pred = model(x, mask)
-            loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
-            print(loss.item())
-
-            num_words_in_batch = torch.nonzero(y).size(0)
-            total_loss += loss.item()*num_words_in_batch
-            word_count += num_words_in_batch
-
-            pred = torch.argmax(y_pred, -1)
-            pred = torch.where(y == 0, y, pred)
-            diff = pred - y
-            total_wrong += np.count_nonzero(diff.cpu())
+            test_output, hidden = model(x, hidden)
+            loss = loss_fn(torch.flatten(test_output, 0, 1), torch.flatten(y, 0, 1)).data
+            total_loss += loss
+            word_count += 1
             
         perplexity = np.exp(total_loss / word_count)
-        accuracy = 1 - (total_wrong / word_count)
         print(perplexity)
-        print(accuracy)
         experiment.log_metric("perplexity", perplexity)
-        experiment.log_metric("accuracy", accuracy)
+
+def generate(model, experiment, train_set, test_set, batch_size, word2id, device):
+    pass
 
 
 if __name__ == "__main__":
@@ -137,6 +174,7 @@ if __name__ == "__main__":
     test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], word2id, char2id)
 
     train_loader = DataLoader(train_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
+    valid_loader = DataLoader(valid_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
     test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
 
     # Make model
@@ -148,20 +186,16 @@ if __name__ == "__main__":
                     hyperparams["lstm_batch_size"]).to(device)
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
-    # Optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["lr"])
 
     if args.load:
         print("loading model")
         model.load_state_dict(torch.load('./model.pt'))
     if args.train:
-        for e in range(hyperparams['num_epochs']):
-            train(model, train_loader, loss_fn, optimizer, word2vec, experiment, hyperparams)
-            test(model, test_loader, loss_fn, word2vec, experiment, hyperparams)
+        train(model, train_loader, loss_fn, word2vec, experiment, hyperparams)
     if args.test:
         test(model, test_loader, loss_fn, word2vec, experiment, hyperparams)
     if args.save:
         torch.save(model.state_dict(), './model.pt')
-    if args.analysis:
-        embedding_analysis(model, experiment, train_set, test_set,
-                           hyperparams["batch_size"], word2vec, device)
+    if args.generate:
+        generate(model, experiment, train_set, test_set,
+                           hyperparams["batch_size"], word2id, device)

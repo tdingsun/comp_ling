@@ -81,6 +81,10 @@ def create_dicts(train_file, valid_file, test_file):
             if char not in char2id:
                 char2id[char] = curr_id
                 curr_id += 1
+                
+    char2id["*BOW*"] = len(char2id) + 1
+    char2id["*EOW*"] = len(char2id) + 1
+    char2id["*PAD*"] = 0
 
     return word2id, char2id
 

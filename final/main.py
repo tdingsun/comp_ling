@@ -160,6 +160,7 @@ if __name__ == "__main__":
 
     # Load dataset
     word2id, char2id = create_dicts(args.train_file, args.valid_file, args.test_file)
+
     id2word = {value:key for key, value in word2id.items()}
     max_word_len = max([len(word) for word in word2id])
     print(max_word_len)
@@ -167,10 +168,6 @@ if __name__ == "__main__":
     print(vocab_size)
     char_vocab_size = len(char2id)
     print(char_vocab_size)
-
-    char2id["*BOW*"] = len(char2id) + 1
-    char2id["*EOW*"] = len(char2id) + 1
-    char2id["*PAD*"] = 0
 
     train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], word2id, char2id, max_word_len)
     valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], word2id, char2id, max_word_len)

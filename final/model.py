@@ -85,7 +85,6 @@ class CharLM(nn.Module):
         x, hidden = self.lstm(x, hidden) #output: batch_size x seq_len x lstm hidden size (300)
         print("after lstm")
         print(x.shape)
-        print(hidden.shape)
         x = self.dropout(x)
         x = x.contiguous().view(self.cnn_batch_size, -1) #output: batch_size*seq_len x lstm hidden size (300)
         print("after resize")

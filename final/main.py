@@ -68,9 +68,9 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 ppl_batch.append(float(ppl))
             
             ppl = np.mean(ppl_batch)
-            print("[epoch {}] valid PPL={}".format(epoch, PPL))
+            print("[epoch {}] valid PPL={}".format(epoch, ppl))
             print("valid loss={}".format(np.mean(loss_batch)))
-            print("PPL decrease={}".format(float(old_PPL - PPL)))
+            print("PPL decrease={}".format(float(old_ppl - ppl)))
 
             if best_ppl > ppl:
                 best_ppl = ppl
@@ -90,11 +90,11 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
 
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
-                mask = y != 0 #true where not zero, flase everywhere else
                 hidden = [state.detach() for state in hidden]
                 output, hidden = model(x, hidden)
+                y = y.contiguous().view(-1)
 
-                loss = loss_fn(torch.flatten(y_pred, 0, 1), torch.flatten(y, 0, 1))
+                loss = loss_fn(output, y)
                 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm(model.parameters(), 5, norm_type=2)

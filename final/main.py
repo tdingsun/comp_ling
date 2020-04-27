@@ -167,8 +167,8 @@ if __name__ == "__main__":
     char_vocab_size = len(char2id)
     print(char_vocab_size)
 
-    char2id["*BOW*"] = len(char_dict) + 1
-    char2id["*EOW*"] = len(char_dict) + 1
+    char2id["*BOW*"] = len(char2id) + 1
+    char2id["*EOW*"] = len(char2id) + 1
     char2id["*PAD*"] = 0
 
     train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], word2id, char2id)

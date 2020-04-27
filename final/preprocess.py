@@ -78,8 +78,8 @@ def create_dicts(train_file, valid_file, test_file):
     for word in word2id:
         for char in word:
             if char not in char2id:
-                char2id[char] = count
-                count += 1
+                char2id[char] = curr_id
+                curr_id += 1
 
     return word2id, char2id
 

@@ -21,7 +21,7 @@ class MyDataset(Dataset):
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
         self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
 
-        self.dataset_size = len(sentences)
+        self.dataset_size = len(sequences)
         # Mask part of the data for BERT training
 
     def __len__(self):
@@ -43,7 +43,7 @@ class MyDataset(Dataset):
         """
         # TODO: Override method to return the ith item in dataset
         item = {
-            "input_vecs": self.sentences[i],
+            "input_vecs": self.sequences[i],
             "label_vecs": self.labels[i]
         }
         return item

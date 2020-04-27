@@ -19,7 +19,7 @@ class MyDataset(Dataset):
         # Split data into fixed length sequences
         self.sequences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
-        self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[train_text[-1]]]
+        self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
 
         self.dataset_size = len(sentences)
         # Mask part of the data for BERT training

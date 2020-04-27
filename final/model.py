@@ -62,13 +62,14 @@ class CharLM(nn.Module):
         print("after resize")
         print(x.shape)
         #batch_size*seq_len x max_word_len+2
-        x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
-        print("after char embedding layer")
-        print(x.shape)
-        print("MIN")
+                print("MIN")
         print(torch.min(x.cpu()))
         print("MAX")
         print(torch.max(x.cpu()))
+        x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
+        print("after char embedding layer")
+        print(x.shape)
+
         x = torch.transpose(x.view(x.size()[0], 1, x.size()[1], -1), 2, 3) #output: batch_size*seq_len x 1 x max_word_len+2 x char_emb_dim
         print("after resize")
         print(x.shape)

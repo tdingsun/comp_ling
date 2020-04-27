@@ -186,6 +186,7 @@ if __name__ == "__main__":
                     char_vocab_size,
                     hyperparams["lstm_seq_len"],
                     hyperparams["lstm_batch_size"]).to(device)
+    print("Model made")
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
 
@@ -193,8 +194,10 @@ if __name__ == "__main__":
         print("loading model")
         model.load_state_dict(torch.load('./model.pt'))
     if args.train:
+        print("training")
         train(model, train_loader, loss_fn, word2id, experiment, hyperparams)
     if args.test:
+        print("testing")
         test(model, test_loader, loss_fn, word2id, experiment, hyperparams)
     if args.save:
         torch.save(model.state_dict(), './model.pt')

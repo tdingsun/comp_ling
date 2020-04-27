@@ -59,8 +59,9 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 print(v_output.shape)
                 print("LABEL SHAPE")
                 print(y.shape)
+                y = y.contiguous().view(-1)
 
-                loss = loss_fn(torch.flatten(v_output, 0, 1), torch.flatten(y, 0, 1))
+                loss = loss_fn(v_output, y)
                 ppl = torch.exp(loss.data)
                 loss_batch.append(float(loss))
                 ppl_batch.append(float(ppl))

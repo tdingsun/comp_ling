@@ -17,10 +17,11 @@ class MyDataset(Dataset):
         words_arr = read_file(input_fn) #array of all words
         contents = tokenize(words_arr, char2id, max_word_len) #breaking words into chars
         # Split data into fixed length sequences
-        self.sequences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
+        self.sequences = [contents[:-1][i*window_size:(i+1)*window_size] for i in range(len(contents[:-1]) // window_size)]
         self.sequences = torch.tensor(self.sequences)
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
-        self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
+        self.labels = [words_arr[1:][i*window_size:(i+1)*window_size] for i in range(len(contents[1:]) // window_size)]
+        # self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
         self.labels = torch.tensor(self.labels)
         print("LABELLLSS")
         print(self.labels.shape)

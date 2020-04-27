@@ -31,7 +31,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     - hyperparams: Hyperparameters dictionary
     """
 
-    learning_rate = hyperparams[lr]
+    learning_rate = hyperparams["lr"]
     old_ppl = 100000
     best_ppl = 100000
 

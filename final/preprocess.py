@@ -18,9 +18,10 @@ class MyDataset(Dataset):
         contents = tokenize(words_arr, char2id, max_word_len) #breaking words into chars
         # Split data into fixed length sequences
         self.sequences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
+        self.sequences = torch.tensor(self.sequences)
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
         self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
-
+        self.labels = torch.tensor(self.labels)
         self.dataset_size = len(self.sequences)
         # Mask part of the data for BERT training
 

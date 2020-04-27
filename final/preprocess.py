@@ -17,19 +17,13 @@ class MyDataset(Dataset):
         # Split data into fixed length sequences
         self.sequences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
         self.sequences = torch.tensor(self.sequences)
-        # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
-        print("time for labels")
-        words_arr = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
+
+        words_arr = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]] #array of all words converted to ids
         words_arr = words_arr[:len(words_arr) - (len(words_arr) % (window_size * batch_size))]
         self.labels = [words_arr[i*window_size:(i+1)*window_size] for i in range((len(words_arr)) // window_size)]
-        # self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
-        print("make torch")
-
         self.labels = torch.tensor(self.labels)
-        print("LABELLLSS")
-        print(self.labels.shape)
+
         self.dataset_size = len(self.sequences)
-        # Mask part of the data for BERT training
 
     def __len__(self):
         """

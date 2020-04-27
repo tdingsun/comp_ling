@@ -54,8 +54,6 @@ class CharLM(nn.Module):
 
     def forward(self, x, hidden):
         #input: batchsize x seq_len x max_word_len+2
-        print(x)
-
         lstm_batch_size = x.size()[0]
         lstm_seq_len = x.size()[1]
         print("start forward")
@@ -64,10 +62,6 @@ class CharLM(nn.Module):
         print("after resize")
         print(x.shape)
         #batch_size*seq_len x max_word_len+2
-        print("MIN")
-        print(torch.min(x))
-        print("MAX")
-        print(torch.max(x))
         x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
         print("after char embedding layer")
         print(x.shape)
@@ -105,9 +99,7 @@ class CharLM(nn.Module):
         chosen_list = list()
         for conv in self.convolutions:
             print("CONV")
-
             print(conv)
-            print(conv(x.cpu()))
             feature_map = F.tanh(conv(x))
             # (batch_size, out_channel, 1, max_word_len-width+1)
             chosen = torch.max(feature_map, 3)[0]

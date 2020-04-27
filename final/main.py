@@ -33,8 +33,8 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     """
 
     learning_rate = hyperparams["lr"]
-    old_ppl = 100000
-    best_ppl = 100000
+    old_perplexity = 100000
+    best_perplexity = 100000
 
     hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
@@ -46,7 +46,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
             ##### VALIDATION #####
             model = model.eval()
             loss_batch = []
-            ppl_batch = []
+            perplexity_batch = []
 
             for batch in tqdm(valid_loader):
                 x = batch['input_vecs'].to(device)
@@ -56,25 +56,25 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 y = y.contiguous().view(-1)
 
                 loss = loss_fn(v_output, y)
-                ppl = torch.exp(loss.data)
+                perplexity = torch.exp(loss.data)
                 loss_batch.append(float(loss))
-                ppl_batch.append(float(ppl))
+                perplexity_batch.append(float(perplexity))
             
-            ppl = np.mean(ppl_batch)
-            print("[epoch {}] valid PPL={}".format(epoch, ppl))
-            print("valid loss={}".format(np.mean(loss_batch)))
-            print("PPL decrease={}".format(float(old_ppl - ppl)))
+            perplexity = np.mean(perplexity_batch)
+            print("[epoch {}] validation perplexity={}".format(epoch, perplexity))
+            print("validation loss={}".format(np.mean(loss_batch)))
+            print("perplexity decrease={}".format(float(old_perplexity - perplexity)))
 
-            if best_ppl > ppl:
-                best_ppl = ppl
+            if best_perplexity > perplexity:
+                best_perplexity = perplexity
                 print("saving model")
                 torch.save(model.state_dict(), './model.pt')
 
-            if float(old_ppl - ppl) <= 1.0:
+            if float(old_perplexity - perplexity) <= 1.0:
                 learning_rate /= 2
                 print("halved lr:{}".format(learning_rate))
             
-            old_ppl = ppl
+            old_perplexity = perplexity
 
             ##### TRAINING #####
             model = model.train()

@@ -99,7 +99,7 @@ class CharLM(nn.Module):
         for conv in self.convolutions:
             print("CONV")
             print(conv)
-            print(conv(x))
+            print(conv(x.cpu()))
             feature_map = F.tanh(conv(x))
             # (batch_size, out_channel, 1, max_word_len-width+1)
             chosen = torch.max(feature_map, 3)[0]

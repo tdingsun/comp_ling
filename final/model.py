@@ -65,6 +65,10 @@ class CharLM(nn.Module):
         x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
         print("after char embedding layer")
         print(x.shape)
+        print("MIN")
+        print(torch.min(x.cpu()))
+        print("MAX")
+        print(torch.max(x.cpu()))
         x = torch.transpose(x.view(x.size()[0], 1, x.size()[1], -1), 2, 3) #output: batch_size*seq_len x 1 x max_word_len+2 x char_emb_dim
         print("after resize")
         print(x.shape)
@@ -98,10 +102,7 @@ class CharLM(nn.Module):
         chosen_list = list()
         for conv in self.convolutions:
             print("CONV")
-            print("MIN")
-            print(torch.min(x.cpu()))
-            print("MAX")
-            print(torch.max(x.cpu()))
+
             print(conv)
             print(conv(x.cpu()))
             feature_map = F.tanh(conv(x))

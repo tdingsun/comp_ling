@@ -1,6 +1,7 @@
 from comet_ml import Experiment
 from preprocess import MyDataset, read_file, create_dicts, tokenize
 from model import CharLM
+from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch import nn, optim
 import torch
@@ -35,8 +36,8 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     old_ppl = 100000
     best_ppl = 100000
 
-    hidden = (to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])), 
-              to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])))
+    hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
 
     with experiment.train():
         batch_id = 0
@@ -113,8 +114,8 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
     word_count = 0
     total_wrong = 0
 
-    hidden = (to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])), 
-              to_var(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])))
+    hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
 
     with experiment.test(), torch.no_grad():
 

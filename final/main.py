@@ -52,13 +52,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
                 hidden = [state.detach() for state in hidden]
-                print("INPUT SHAPE")
-                print(x.shape)
                 v_output, hidden = model(x, hidden)
-                print("OUTPUT SHAPE")
-                print(v_output.shape)
-                print("LABEL SHAPE")
-                print(y.shape)
                 y = y.contiguous().view(-1)
 
                 loss = loss_fn(v_output, y)
@@ -133,7 +127,8 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
             hidden = [state.detach() for state in hidden]
 
             test_output, hidden = model(x, hidden)
-            loss = loss_fn(torch.flatten(test_output, 0, 1), torch.flatten(y, 0, 1)).data
+            y = y.contiguous().view(-1)
+            loss = loss_fn(test_output, y).data
             total_loss += loss
             word_count += 1
             
@@ -162,7 +157,7 @@ if __name__ == "__main__":
                         help="run embedding analysis")
     args = parser.parse_args()
 
-    # TODO: Make sure you modify the `.comet.config` file
+    # Comet.ml setup
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)
 

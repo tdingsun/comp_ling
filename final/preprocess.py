@@ -54,7 +54,7 @@ def tokenize(contents, char2id, max_word_len):
         vec = [char2id[char] for char in word]
         if len(vec) < max_word_len:
             vec += [char2id["*PAD*"] for _ in range(max_word_len - len(vec))]
-        vec = [char_dict["*BOW*"]] + vec + [char_dict["*EOW*"]]
+        vec = [char2id["*BOW*"]] + vec + [char2id["*EOW*"]]
         tokenized_content.append(vec)
     return tokenized_content
 

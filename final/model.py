@@ -97,6 +97,9 @@ class CharLM(nn.Module):
     def conv_layers(self, x):
         chosen_list = list()
         for conv in self.convolutions:
+            print("CONV")
+            print(conv)
+            print(x.shape)
             feature_map = F.tanh(conv(x))
             # (batch_size, out_channel, 1, max_word_len-width+1)
             chosen = torch.max(feature_map, 3)[0]

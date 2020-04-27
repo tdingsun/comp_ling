@@ -62,6 +62,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 y = y.contiguous().view(-1)
 
                 loss = loss_fn(v_output, y)
+                print(loss)
                 ppl = torch.exp(loss.data)
                 loss_batch.append(float(loss))
                 ppl_batch.append(float(ppl))

@@ -22,6 +22,8 @@ class MyDataset(Dataset):
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
         self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
         self.labels = torch.tensor(self.labels)
+        print("LABELLLSS")
+        print(self.labels.shape)
         self.dataset_size = len(self.sequences)
         # Mask part of the data for BERT training
 
@@ -81,7 +83,7 @@ def create_dicts(train_file, valid_file, test_file):
             if char not in char2id:
                 char2id[char] = curr_id
                 curr_id += 1
-                
+
     char2id["*BOW*"] = len(char2id) + 1
     char2id["*EOW*"] = len(char2id) + 1
     char2id["*PAD*"] = 0

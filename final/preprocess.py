@@ -48,7 +48,7 @@ class MyDataset(Dataset):
         }
         return item
 
-def tokenize(self, contents, char2id, max_word_len):
+def tokenize(contents, char2id, max_word_len):
     tokenized_content = []
     for word in contents:
         vec = [char2id[char] for char in word]

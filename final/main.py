@@ -168,11 +168,11 @@ if __name__ == "__main__":
 
     id2word = {value:key for key, value in word2id.items()}
     max_word_len = max([len(word) for word in word2id])
-    print(max_word_len)
+    print("Max word length: ", max_word_len)
     vocab_size = len(word2id)
-    print(vocab_size)
+    print("Vocab size: ", vocab_size)
     char_vocab_size = len(char2id)
-    print(char_vocab_size)
+    print("Char vocab size: ", char_vocab_size)
 
     train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
     valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)

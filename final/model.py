@@ -98,6 +98,10 @@ class CharLM(nn.Module):
         chosen_list = list()
         for conv in self.convolutions:
             print("CONV")
+            print("MIN")
+            print(torch.min(x))
+            print("MAX")
+            print(torch.max(x))
             print(conv)
             print(conv(x.cpu()))
             feature_map = F.tanh(conv(x))

@@ -7,19 +7,21 @@ import math
 class MyDataset(Dataset):
     # TODO: Create masked Penn Treebank dataset.
     #       You can change signature of the initializer.
-    def __init__(self, input_fn, window_size, word2id, char2id, max_word_len):
+    def __init__(self, input_fn, window_size, batch_size, word2id, char2id, max_word_len):
         super().__init__()
         self.word2id = {PAD_TOKEN: 0, MASK_TOKEN: 1} if word2id == None else word2id
         # Read data from file
         words_arr = read_file(input_fn) #array of all words
         contents = tokenize(words_arr, char2id, max_word_len) #breaking words into chars
+        contents = contents[:len(contents) - (len(contents) % (window_size * batch_size))]
         # Split data into fixed length sequences
         self.sequences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
         self.sequences = torch.tensor(self.sequences)
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]
         print("time for labels")
-        words_arr = [word2id[w] for w in words_arr[1:]]
-        self.labels = [words_arr[i*window_size:(i+1)*window_size] for i in range((len(contents) - 1) // window_size)]
+        words_arr = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
+        words_arr = words_arr[:len(words_arr) - (len(words_arr) % (window_size * batch_size))]
+        self.labels = [words_arr[i*window_size:(i+1)*window_size] for i in range((len(words_arr)) // window_size)]
         # self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
         print("make torch")
 

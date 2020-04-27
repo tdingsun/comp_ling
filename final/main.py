@@ -20,7 +20,7 @@ hyperparams = {
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def train(model, train_loader, loss_fn, word2vec, experiment, hyperparams):
+def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     """
     Training loop that trains BERT model.
 
@@ -98,7 +98,7 @@ def train(model, train_loader, loss_fn, word2vec, experiment, hyperparams):
         print("Training finished")
 
 
-def test(model, test_loader, loss_fn, word2vec, experiment, hyperparams):
+def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
     """
     Testing loop for BERT model and logs perplexity and accuracy to comet.ml.
 
@@ -193,9 +193,9 @@ if __name__ == "__main__":
         print("loading model")
         model.load_state_dict(torch.load('./model.pt'))
     if args.train:
-        train(model, train_loader, loss_fn, word2vec, experiment, hyperparams)
+        train(model, train_loader, loss_fn, word2id, experiment, hyperparams)
     if args.test:
-        test(model, test_loader, loss_fn, word2vec, experiment, hyperparams)
+        test(model, test_loader, loss_fn, word2id, experiment, hyperparams)
     if args.save:
         torch.save(model.state_dict(), './model.pt')
     if args.generate:

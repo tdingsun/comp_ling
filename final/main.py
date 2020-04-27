@@ -1,7 +1,6 @@
 from comet_ml import Experiment
-from data import MyDataset, read_file
+from preprocess import MyDataset, read_file, create_dicts, tokenize
 from model import CharLM
-from embedding_analysis import embedding_analysis
 from torch.utils.data import DataLoader
 from torch import nn, optim
 import torch
@@ -150,7 +149,7 @@ if __name__ == "__main__":
                         help="run training loop")
     parser.add_argument("-t", "--test", action="store_true",
                         help="run testing loop")
-    parser.add_argument("-a", "--analysis", action="store_true",
+    parser.add_argument("-g", "--generate", action="store_true",
                         help="run embedding analysis")
     args = parser.parse_args()
 

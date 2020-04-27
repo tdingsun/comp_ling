@@ -43,7 +43,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
         batch_id = 0
         
         for epoch in range(hyperparams["num_epochs"]):
-            # VALIDATION
+            ##### VALIDATION #####
             model = model.eval()
             loss_batch = []
             ppl_batch = []
@@ -68,6 +68,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
 
             if best_ppl > ppl:
                 best_ppl = ppl
+                print("saving model")
                 torch.save(model.state_dict(), './model.pt')
 
             if float(old_ppl - ppl) <= 1.0:
@@ -76,7 +77,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
             
             old_ppl = ppl
 
-            # TRAINING
+            ##### TRAINING #####
             model = model.train()
             optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate, momentum = 0.85)
             for batch in tqdm(train_loader):
@@ -97,6 +98,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 if (batch_id + 1) % 100 == 0:
                     print(loss.item())
                 batch_id += 1
+        print("saving model")
         torch.save(model.state_dict(), './model.pt')
         print("Training finished")
 

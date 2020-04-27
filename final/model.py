@@ -54,6 +54,8 @@ class CharLM(nn.Module):
 
     def forward(self, x, hidden):
         #input: batchsize x seq_len x max_word_len+2
+        print(x)
+
         lstm_batch_size = x.size()[0]
         lstm_seq_len = x.size()[1]
         print("start forward")
@@ -62,7 +64,7 @@ class CharLM(nn.Module):
         print("after resize")
         print(x.shape)
         #batch_size*seq_len x max_word_len+2
-                print("MIN")
+        print("MIN")
         print(torch.min(x.cpu()))
         print("MAX")
         print(torch.max(x.cpu()))

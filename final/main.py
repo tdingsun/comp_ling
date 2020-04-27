@@ -158,7 +158,7 @@ if __name__ == "__main__":
     experiment.log_parameters(hyperparams)
 
     # Load dataset
-    word2id, char2id = create_dicts("train_file", "valid_file", "test_file")
+    word2id, char2id = create_dicts(train_file, valid_file, test_file)
     id2word = {value:key for key, value in word2id.items()}
     max_word_len = max([len(word) for word in word_dict])
     vocab_size = len(word2id)

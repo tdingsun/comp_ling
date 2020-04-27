@@ -15,7 +15,7 @@ class MyDataset(Dataset):
         self.word2id = {PAD_TOKEN: 0, MASK_TOKEN: 1} if word2id == None else word2id
         # Read data from file
         words_arr = read_file(input_fn) #array of all words
-        contents = tokenize(contents, char2id, max_word_len) #breaking words into chars
+        contents = tokenize(words_arr, char2id, max_word_len) #breaking words into chars
         # Split data into fixed length sequences
         self.sequences = [contents[i*window_size:(i+1)*window_size] for i in range(len(contents) // window_size)]
         # sentences = [contents[i:i+window_size] for i in range(len(contents) - window_size)]

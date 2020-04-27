@@ -21,7 +21,7 @@ class MyDataset(Dataset):
         words_arr = words_arr[1:]
         self.labels = [words_arr[i*window_size:(i+1)*window_size] for i in range((len(contents) - 1) // window_size)]
         # self.labels = [word2id[w] for w in words_arr[1:]] + [word2id[words_arr[-1]]]
-        print(self.label)
+        print(self.labels)
         print("make torch")
 
         self.labels = torch.tensor(self.labels)

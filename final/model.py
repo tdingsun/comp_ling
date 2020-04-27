@@ -56,49 +56,24 @@ class CharLM(nn.Module):
         #input: batchsize x seq_len x max_word_len+2
         lstm_batch_size = x.size()[0]
         lstm_seq_len = x.size()[1]
-        print("start forward")
-        print(x.shape)
         x = x.contiguous().view(-1, x.size()[2])
-        print("after resize")
-        print(x.shape)
         #batch_size*seq_len x max_word_len+2
         x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
-        print("after char embedding layer")
-        print(x.shape)
-
         x = torch.transpose(x.view(x.size()[0], 1, x.size()[1], -1), 2, 3) #output: batch_size*seq_len x 1 x max_word_len+2 x char_emb_dim
-        print("after resize")
-        print(x.shape)
         x = self.conv_layers(x) #output: batch_size*seq_len x total_num_filters (525)
-        print("after conv layers")
-        print(x.shape)
         x = self.batch_norm(x) #output: batch_size*seq_len x total_num_filters (525)
-        print("after batch norm")
-        print(x.shape)
         x = self.highway1(x) #output: batch_size*seq_len x total_num_filters (525)
         x = self.highway2(x) #output: batch_size*seq_len x total_num_filters (525)
-        print("after highways")
-        print(x.shape)
         x = x.contiguous().view(self.batch_size, self.seq_len, -1) #output: batch_size x seq_len x total_num_filters (525)
-        print("after resize")
-        print(x.shape)
         x, hidden = self.lstm(x, hidden) #output: batch_size x seq_len x lstm hidden size (300)
-        print("after lstm")
-        print(x.shape)
         x = self.dropout(x)
         x = x.contiguous().view(self.cnn_batch_size, -1) #output: batch_size*seq_len x lstm hidden size (300)
-        print("after resize")
-        print(x.shape)
         x = self.linear(x) #output: batch_size*seq_len x vocab size
-        print("after linear")
-        print(x.shape)
         return x, hidden
 
     def conv_layers(self, x):
         chosen_list = list()
         for conv in self.convolutions:
-            print("CONV")
-            print(conv)
             feature_map = F.tanh(conv(x))
             # (batch_size, out_channel, 1, max_word_len-width+1)
             chosen = torch.max(feature_map, 3)[0]

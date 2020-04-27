@@ -52,7 +52,13 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
                 hidden = [state.detach() for state in hidden]
+                print("INPUT SHAPE")
+                print(x.shape)
                 v_output, hidden = model(x, hidden)
+                print("OUTPUT SHAPE")
+                print(v_output.shape)
+                print("LABEL SHAPE")
+                print(y.shape)
 
                 loss = loss_fn(torch.flatten(v_output, 0, 1), torch.flatten(y, 0, 1))
                 ppl = torch.exp(loss.data)

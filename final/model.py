@@ -102,6 +102,8 @@ class CharLM(nn.Module):
         x = self.batch_norm(x) #output: batch_size*seq_len x total_num_filters (525)
         x = self.highway1(x) #output: batch_size*seq_len x total_num_filters (525)
         x = self.highway2(x) #output: batch_size*seq_len x total_num_filters (525)
+        x = x.contiguous().view(self.batch_size, self.seq_len, -1) #output: batch_size x seq_len x total_num_filters (525)
+
         print(x.shape)
         x, hidden = self.lstm(x) #output: batch_size x seq_len x lstm hidden size (300)
         return x

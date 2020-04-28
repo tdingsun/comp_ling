@@ -63,7 +63,7 @@ def read_file(fname):
     content = []
     with open(fname) as f:
         for line in f.readlines():
-            content += line.lower().strip().split()
+            content += line.strip().split()
     return content
 
 def create_dicts(train_file, valid_file, test_file):

@@ -142,7 +142,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 
     input_text = "*STOP* " + input_text
-    input_seq = tokenize(input_text.lower().split(), char2id, max_word_len)
+    input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
     for i in range(ntok):
 

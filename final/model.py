@@ -32,12 +32,14 @@ class CharLM(nn.Module):
         self.highway_input_dim = 525
 
         self.char_embedding_layer = nn.Embedding(self.char_vocab_size, self.char_e_dim)
-        self.cnn_w1 = nn.Conv2d(in_channels=1, out_channels=25, kernel_size=(self.char_e_dim, 1), bias=True)
-        self.cnn_w2 = nn.Conv2d(in_channels=1, out_channels=50, kernel_size=(self.char_e_dim, 2), bias=True)
-        self.cnn_w3 = nn.Conv2d(in_channels=1, out_channels=75, kernel_size=(self.char_e_dim, 3), bias=True)
-        self.cnn_w4 = nn.Conv2d(in_channels=1, out_channels=100, kernel_size=(self.char_e_dim, 4), bias=True)
-        self.cnn_w5 = nn.Conv2d(in_channels=1, out_channels=125, kernel_size=(self.char_e_dim, 5), bias=True)
-        self.cnn_w6 = nn.Conv2d(in_channels=1, out_channels=150, kernel_size=(self.char_e_dim, 6), bias=True)
+        self.cnn_w1 = nn.Conv2d(in_channels=1, out_channels=50, kernel_size=(self.char_e_dim, 1), bias=True)
+        self.cnn_w2 = nn.Conv2d(in_channels=1, out_channels=100, kernel_size=(self.char_e_dim, 2), bias=True)
+        self.cnn_w3 = nn.Conv2d(in_channels=1, out_channels=150, kernel_size=(self.char_e_dim, 3), bias=True)
+        self.cnn_w4 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 4), bias=True)
+        self.cnn_w5 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 5), bias=True)
+        self.cnn_w6 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 6), bias=True)
+        self.cnn_w7 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 7), bias=True)
+
         self.convolutions = [self.cnn_w1, self.cnn_w2, self.cnn_w3, self.cnn_w4, self.cnn_w5, self.cnn_w6]
         #tanh activation
         #max-over-time pooling for all of them, then concat. 

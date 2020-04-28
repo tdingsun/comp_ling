@@ -16,7 +16,7 @@ hyperparams = {
     "lr": 1.0,
     "lstm_batch_size": 20,
     "lstm_seq_len": 35,
-    "word_embed_size": 300,
+    "word_embed_size": 650,
     "char_embed_size": 15
 }
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

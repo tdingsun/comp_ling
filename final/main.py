@@ -156,7 +156,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         topk = torch.topk(output[-1, :], top_k).indices
         rand = random.randint(0, top_k-1)
         chosen_index = topk[rand].item()
-        input_seq += [tokenize([id2word[chosen_index]], char2id, max_word_len)]
+        input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
         output_seq += [chosen_index]
     
     decoded_output = []

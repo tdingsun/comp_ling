@@ -52,10 +52,12 @@ class CharLM(nn.Module):
         self.linear = nn.Linear(self.word_e_dim, self.vocab_size)
 
 
-    def forward(self, x, hidden):
+    def forward(self, x, hidden, generate=False):
         #input: batchsize x seq_len x max_word_len+2
-        lstm_batch_size = x.size()[0]
-        lstm_seq_len = x.size()[1]
+        if generate:
+            self.batch_size = x.size()[0]
+            self.seq_len = x.size()[1]
+            self.cnn_batch_size = self.batch_size * self.seq_len
         x = x.contiguous().view(-1, x.size()[2])
         #batch_size*seq_len x max_word_len+2
         x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)

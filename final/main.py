@@ -182,6 +182,7 @@ if __name__ == "__main__":
     parser.add_argument("train_file")
     parser.add_argument("valid_file")
     parser.add_argument("test_file")
+    parser.add_argument("-num_epochs", "--num_epochs", type=int)
     parser.add_argument("-l", "--load", action="store_true",
                         help="load model.pt")
     parser.add_argument("-s", "--save", action="store_true",
@@ -194,6 +195,8 @@ if __name__ == "__main__":
                         help="run embedding analysis")
     args = parser.parse_args()
 
+    print(args.num_epochs)
+    hyperparams["num_epochs"] = args.num_epochs
     # Comet.ml setup
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)

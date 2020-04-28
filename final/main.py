@@ -141,7 +141,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
 
-    input_seq = tokenize(input_text, char2id, max_word_len)
+    input_seq = tokenize(input_text.lower().split(), char2id, max_word_len)
     print(input_seq)
     output = []
     for i in range(ntok):

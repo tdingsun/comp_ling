@@ -137,11 +137,11 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
         print(perplexity)
         experiment.log_metric("perplexity", perplexity)
 
-def generate(input_text, model, experiment, word2id, id2word, device, ntok=20):
+def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=20):
     hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
 
-    input_seq = tokenize(input_text)
+    input_seq = tokenize(input_text, char2id, max_word_len)
     output = []
     for i in range(ntok):
         x = torch.tensor(input_seq).to(DEVICE)
@@ -156,7 +156,7 @@ def generate(input_text, model, experiment, word2id, id2word, device, ntok=20):
     decoded_output = []
     for word in output:
         decoded_output += [id2word[word]]
-    print(decoded_outpu)
+    print(decoded_output)
 
 
     
@@ -232,4 +232,4 @@ if __name__ == "__main__":
     if args.generate:
         while True:
             input_text = input("Input: ")
-            generate(input_text, model, experiment, word2id, id2word, device)
+            generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)

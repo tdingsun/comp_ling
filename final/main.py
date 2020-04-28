@@ -92,7 +92,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 loss = loss_fn(output, y)
                 
                 loss.backward()
-                torch.nn.utils.clip_grad_norm(model.parameters(), 5, norm_type=2)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5, norm_type=2)
                 optimizer.step()
 
                 if (batch_id + 1) % 100 == 0:

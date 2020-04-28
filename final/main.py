@@ -145,7 +145,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     input_text = "STOP " + input_text
     input_seq = tokenize(input_text.lower().split(), char2id, max_word_len)
     print(input_seq)
-    output = []
+    output_seq = []
     for i in range(ntok):
         x = torch.tensor(input_seq).to(device)
         x = x.view(1, -1, max_word_len+2)
@@ -156,10 +156,10 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         rand = random.randint(0, top_k-1)
         chosen_index = topk[rand].item()
 
-        output += [chosen_index]
+        output_seq += [chosen_index]
     
     decoded_output = []
-    for word in output:
+    for word in output_seq:
         decoded_output += [id2word[word]]
     print(decoded_output)
 

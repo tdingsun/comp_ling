@@ -157,6 +157,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
     
     decoded_output = []
+    print(input_seq)
     for word in input_seq:
         decoded_output += [id2word[word]]
     print(decoded_output)

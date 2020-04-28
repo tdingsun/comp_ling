@@ -141,7 +141,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 
-    input_text = "STOP " + input_text
+    input_text = "*STOP* " + input_text
     input_seq = tokenize(input_text.lower().split(), char2id, max_word_len)
     output_seq = []
     for i in range(ntok):
@@ -158,17 +158,12 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         output_seq += [chosen_index]
     
     decoded_output = [id2word[word] for word in output_seq]
-    
-    
     print(input_text + " " + " ".join(decoded_output))
 
+# def crawl(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device):
+#     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
+#               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 
-    
-
-        
-
-
-    pass
 
 
 if __name__ == "__main__":

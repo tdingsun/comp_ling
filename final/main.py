@@ -162,7 +162,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     decoded_output = [id2word[word] for word in output_seq]
     
     
-    print(input_text + " ".join(decoded_output))
+    print(input_text + " " + " ".join(decoded_output))
 
 
     

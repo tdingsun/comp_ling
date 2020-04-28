@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from torch import nn, optim
 import torch
 import numpy as np
+import random
 import argparse
 from tqdm import tqdm  # optional progress bar
 
@@ -141,6 +142,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 
+    input_text = "STOP " + input_text
     input_seq = tokenize(input_text.lower().split(), char2id, max_word_len)
     print(input_seq)
     output = []

@@ -40,9 +40,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
 
-    with experiment.train():
-        batch_id = 0
-        
+    with experiment.train():        
         for epoch in range(hyperparams["num_epochs"]):
             ##### VALIDATION #####
             model = model.eval()
@@ -95,9 +93,6 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 5, norm_type=2)
                 optimizer.step()
 
-                if (batch_id + 1) % 100 == 0:
-                    print(loss.item())
-                batch_id += 1
         print("saving model")
         torch.save(model.state_dict(), './model.pt')
         print("Training finished")

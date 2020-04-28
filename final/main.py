@@ -146,6 +146,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     output = []
     for i in range(ntok):
         x = torch.tensor(input_seq).to(device)
+        x = x.view(1, -1, max_word_len+2)
         print(x.shape)
         hidden = [state.detach() for state in hidden]
         output, hidden = model(x, hidden)
@@ -201,13 +202,14 @@ if __name__ == "__main__":
     char_vocab_size = len(char2id)
     print("Char vocab size: ", char_vocab_size)
 
-    train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
-    valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
-    test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
+    if not args.generate:
+        train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
+        valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
+        test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
 
-    train_loader = DataLoader(train_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
-    valid_loader = DataLoader(valid_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
-    test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
+        train_loader = DataLoader(train_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
+        valid_loader = DataLoader(valid_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
+        test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
 
     # Make model
     model = CharLM(hyperparams["char_embed_size"], 

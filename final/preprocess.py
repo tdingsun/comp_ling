@@ -50,6 +50,7 @@ class MyDataset(Dataset):
         return item
 
 def tokenize(contents, char2id, max_word_len):
+    print(contents)
     tokenized_content = []
     for word in contents:
         vec = [char2id[char] for char in word]
@@ -57,6 +58,7 @@ def tokenize(contents, char2id, max_word_len):
             vec += [char2id["*PAD*"] for _ in range(max_word_len - len(vec))]
         vec = [char2id["*BOW*"]] + vec + [char2id["*EOW*"]]
         tokenized_content.append(vec)
+    print(tokenized_content)
     return tokenized_content
 
 def read_file(fname):

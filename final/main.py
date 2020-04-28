@@ -60,9 +60,12 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 perplexity_batch.append(float(perplexity))
             
             perplexity = np.mean(perplexity_batch)
+            loss = np.mean(loss_batch)
             print("[epoch {}] validation perplexity={}".format(epoch, perplexity))
-            print("validation loss={}".format(np.mean(loss_batch)))
+            print("validation loss={}".format(loss))
             print("perplexity decrease={}".format(float(old_perplexity - perplexity)))
+            experiment.log_metric("perplexity", perplexity)
+            experiment.log_metric("loss", loss)
 
             if best_perplexity > perplexity:
                 best_perplexity = perplexity
@@ -160,10 +163,41 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-# def crawl(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device):
-#     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
-#               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
+def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=20, top_k=10):
 
+    input_seq = tokenize(input_text.split(), char2id, max_word_len)
+    output_seq = []
+    x = torch.tensor(input_seq).to(device)
+    x = x.view(1, -1, max_word_len+2)
+    embeddings = model.getEmbedding(x)
+    print(embeddings.shape)
+
+    stepsize = 1.0 / float(ntok)
+    t = stepsize
+    for i in range(ntok):
+        new_embedding = embeddings[0] * t + embeddings[0] * (1.0 - t)
+        logits = model.getWordFromEmbedding(new_embedding)
+        topk = torch.topk(output[-1, :], top_k).indices
+        # rand = random.randint(0, top_k-1)
+        rand = 0
+        chosen_index = topk[rand].item()
+        input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
+        output_seq += [chosen_index]
+    
+    decoded_output = [id2word[word] for word in output_seq]
+    print(input_text + " " + " ".join(decoded_output))
+        
+    # for i in range(ntok):
+    #     output, hidden = model(x, hidden, generate=True)
+    #     topk = torch.topk(output[-1, :], top_k).indices
+    #     rand = random.randint(0, top_k-1)
+    #     # rand = 0
+    #     chosen_index = topk[rand].item()
+    #     input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
+    #     output_seq += [chosen_index]
+    
+    # decoded_output = [id2word[word] for word in output_seq]
+    # print(input_text + " " + " ".join(decoded_output))
 
 
 if __name__ == "__main__":
@@ -181,7 +215,9 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--test", action="store_true",
                         help="run testing loop")
     parser.add_argument("-g", "--generate", action="store_true",
-                        help="run embedding analysis")
+                        help="generate words")
+    parser.add_argument("-w", "--wordpath", action="store_true",
+                        help="special function")                        
     args = parser.parse_args()
 
     print(args.num_epochs)
@@ -201,7 +237,7 @@ if __name__ == "__main__":
     char_vocab_size = len(char2id)
     print("Char vocab size: ", char_vocab_size)
 
-    if not args.generate:
+    if not args.generate or not args.wordpath:
         train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
         valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
         test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
@@ -236,3 +272,7 @@ if __name__ == "__main__":
         while True:
             input_text = input("Input: ")
             generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)
+    if args.wordpath:
+            input_text = input("Input: ")
+            wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)
+ 

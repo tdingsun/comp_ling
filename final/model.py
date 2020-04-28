@@ -88,3 +88,21 @@ class CharLM(nn.Module):
         
         # (batch_size, total_num_filers)
         return torch.cat(chosen_list, 1)
+    
+    def getEmbedding(x) {
+        x = x.contiguous().view(-1, x.size()[2])
+        #batch_size*seq_len x max_word_len+2
+        x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
+        x = torch.transpose(x.view(x.size()[0], 1, x.size()[1], -1), 2, 3) #output: batch_size*seq_len x 1 x max_word_len+2 x char_emb_dim
+        x = self.conv_layers(x) #output: batch_size*seq_len x total_num_filters (525)
+        x = self.batch_norm(x) #output: batch_size*seq_len x total_num_filters (525)
+        x = self.highway1(x) #output: batch_size*seq_len x total_num_filters (525)
+        x = self.highway2(x) #output: batch_size*seq_len x total_num_filters (525)
+        return x
+    }
+
+    def getWordFromEmbedding(x) {
+        #input: batch_size*seq_len x total_num_filters (525)
+        x = self.linear(x) #output: batch_size*seq_len x vocab size
+        return x
+    }

@@ -145,11 +145,9 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     input_seq = tokenize(input_text.lower().split(), char2id, max_word_len)
     output_seq = []
     for i in range(ntok):
-        print(input_seq)
 
         x = torch.tensor(input_seq).to(device)
         x = x.view(1, -1, max_word_len+2)
-        print(x.shape)
         hidden = [state.detach() for state in hidden]
         output, hidden = model(x, hidden, generate=True)
         topk = torch.topk(output[-1, :], top_k).indices

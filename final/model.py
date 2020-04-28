@@ -29,7 +29,7 @@ class CharLM(nn.Module):
         self.batch_size = batch_size
         self.cnn_batch_size = self.seq_len * self.batch_size
 
-        self.highway_input_dim = 525
+        self.highway_input_dim = 1100
 
         self.char_embedding_layer = nn.Embedding(self.char_vocab_size, self.char_e_dim)
         self.cnn_w1 = nn.Conv2d(in_channels=1, out_channels=50, kernel_size=(self.char_e_dim, 1), bias=True)

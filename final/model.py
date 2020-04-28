@@ -40,7 +40,7 @@ class CharLM(nn.Module):
         self.cnn_w6 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 6), bias=True)
         self.cnn_w7 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 7), bias=True)
 
-        self.convolutions = [self.cnn_w1, self.cnn_w2, self.cnn_w3, self.cnn_w4, self.cnn_w5, self.cnn_w6]
+        self.convolutions = [self.cnn_w1, self.cnn_w2, self.cnn_w3, self.cnn_w4, self.cnn_w5, self.cnn_w6, self.cnn_w7]
         #tanh activation
         #max-over-time pooling for all of them, then concat. 
         self.batch_norm = nn.BatchNorm1d(self.highway_input_dim, affine=False)

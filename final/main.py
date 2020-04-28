@@ -151,8 +151,8 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         hidden = [state.detach() for state in hidden]
         output, hidden = model(x, hidden, generate=True)
         topk = torch.topk(output[-1, :], top_k).indices
-        # rand = random.randint(0, top_k-1)
-        rand = 0
+        rand = random.randint(0, top_k-1)
+        # rand = 0
         chosen_index = topk[rand].item()
         input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
         output_seq += [chosen_index]

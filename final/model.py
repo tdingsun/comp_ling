@@ -13,7 +13,7 @@ class Highway(nn.Module):
         self.fc2 = nn.Linear(input_size, input_size, bias=True)
 
     def forward(self, x):
-        t = F.sigmoid(self.fc1(x))
+        t = torch.sigmoid(self.fc1(x))
         return torch.mul(t, F.relu(self.fc2(x))) + torch.mul(1-t, x)
 
 
@@ -76,7 +76,7 @@ class CharLM(nn.Module):
     def conv_layers(self, x):
         chosen_list = list()
         for conv in self.convolutions:
-            feature_map = F.tanh(conv(x))
+            feature_map = torch.tanh(conv(x))
             # (batch_size, out_channel, 1, max_word_len-width+1)
             chosen = torch.max(feature_map, 3)[0]
             # (batch_size, out_channel, 1)            

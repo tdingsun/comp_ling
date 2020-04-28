@@ -114,9 +114,8 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
     - hyperparams: Hyperparameters dictionary
     """
     model = model.eval()
-    total_loss = 0
-    word_count = 0
-    total_wrong = 0
+    loss_batch = []
+    perplexity_batch = []
 
     hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
@@ -130,12 +129,17 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
 
             test_output, hidden = model(x, hidden)
             y = y.contiguous().view(-1)
-            loss = loss_fn(test_output, y).data
-            total_loss += loss
-            word_count += 1
-            
-        perplexity = np.exp(total_loss / word_count)
-        print(perplexity)
+
+            loss = loss_fn(test_output, y)
+            perplexity = torch.exp(loss.data)
+            loss_batch.append(float(loss))
+            perplexity_batch.append(float(perplexity))
+        
+        perplexity = np.mean(perplexity_batch)
+        loss = np.mean(loss_batch)
+        print("test perplexity: ", perplexity)
+        print("test loss: ", loss)
+        
         experiment.log_metric("perplexity", perplexity)
 
 def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=20, top_k=10):

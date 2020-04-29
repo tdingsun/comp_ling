@@ -19,8 +19,8 @@ hyperparams = {
     "word_embed_size": 650,
     "char_embed_size": 15
 }
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     """
@@ -70,7 +70,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
             if best_perplexity > perplexity:
                 best_perplexity = perplexity
                 print("saving model")
-                torch.save(model.state_dict(), './model.pt')
+                torch.save(model.state_dict(), './saved_model.pt')
 
             if float(old_perplexity - perplexity) <= 1.0:
                 learning_rate /= 2
@@ -97,7 +97,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 optimizer.step()
 
         print("saving model")
-        torch.save(model.state_dict(), './model.pt')
+        torch.save(model.state_dict(), './saved_model.pt')
         print("Training finished")
 
 
@@ -239,13 +239,11 @@ if __name__ == "__main__":
                     hyperparams["lstm_seq_len"],
                     hyperparams["lstm_batch_size"]).to(device)
     print("Model made")
-    model = model.eval()
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
 
     if args.load:
-
-        model.load_state_dict(torch.load('./model.pt'))
+        model.load_state_dict(torch.load('./saved_model.pt'))
         print("loading model")
     if args.train:
         print("training")
@@ -254,7 +252,7 @@ if __name__ == "__main__":
         print("testing")
         test(model, test_loader, loss_fn, word2id, experiment, hyperparams)
     if args.save:
-        torch.save(model.state_dict(), './model.pt')
+        torch.save(model.state_dict(), './saved_model.pt')
     if args.generate:
         while True:
             input_text = input("Input: ")

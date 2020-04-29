@@ -238,11 +238,12 @@ if __name__ == "__main__":
     if not args.generate or not args.wordpath:
         train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
         valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
-        test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
 
         train_loader = DataLoader(train_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
         valid_loader = DataLoader(valid_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
-        test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
+
+    test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
+    test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
 
     # Make model
     model = CharLM(hyperparams["char_embed_size"], 

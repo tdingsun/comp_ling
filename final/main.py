@@ -184,26 +184,12 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
-        
-    # for i in range(ntok):
-    #     output, hidden = model(x, hidden, generate=True)
-    #     topk = torch.topk(output[-1, :], top_k).indices
-    #     rand = random.randint(0, top_k-1)
-    #     # rand = 0
-    #     chosen_index = topk[rand].item()
-    #     input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
-    #     output_seq += [chosen_index]
-    
-    # decoded_output = [id2word[word] for word in output_seq]
-    # print(input_text + " " + " ".join(decoded_output))
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("train_file")
     parser.add_argument("valid_file")
     parser.add_argument("test_file")
-    parser.add_argument("-num_epochs", "--num_epochs", type=int)
     parser.add_argument("-l", "--load", action="store_true",
                         help="load model.pt")
     parser.add_argument("-s", "--save", action="store_true",
@@ -215,7 +201,8 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--generate", action="store_true",
                         help="generate words")
     parser.add_argument("-w", "--wordpath", action="store_true",
-                        help="special function")                        
+                        help="special function")      
+    parser.add_argument("-num_epochs", "--num_epochs", type=int)              
     args = parser.parse_args()
 
     print(args.num_epochs)
@@ -252,12 +239,14 @@ if __name__ == "__main__":
                     hyperparams["lstm_seq_len"],
                     hyperparams["lstm_batch_size"]).to(device)
     print("Model made")
+    model = model.eval()
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
 
     if args.load:
-        print("loading model")
+
         model.load_state_dict(torch.load('./model.pt'))
+        print("loading model")
     if args.train:
         print("training")
         train(model, train_loader, loss_fn, word2id, experiment, hyperparams)

@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
     if args.load:
         print("Loading Model")
-        myModel = torch.load('./saved_model.pt')
+        myModel.load_state_dict(torch.load('./model.pt'))
     if args.train:
         print("training")
         train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams)
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams)
     if args.save:
         print("Saving Model")
-        torch.save(myModel, './saved_model.pt')
+        torch.save(myModel.state_dict(), './model.pt')
     if args.generate:
         while True:
             input_text = input("Input: ")

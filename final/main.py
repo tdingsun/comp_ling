@@ -175,7 +175,7 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     stepsize = 1.0 / float(ntok)
     t = stepsize
     for i in range(ntok):
-        new_embedding = embeddings[1, 0, :] * t + embeddings[1, 1, :] * (1.0 - t)
+        new_embedding = embeddings[0, 0, :] * t + embeddings[0, 1, :] * (1.0 - t)
         print(new_embedding.shape)
         logits = model.getWordFromEmbedding(new_embedding)
         topk = torch.topk(output[-1, :], top_k).indices

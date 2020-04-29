@@ -40,7 +40,7 @@ def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
     hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
 
-    with experiment.train():        
+    with experiment.train():
         for epoch in range(hyperparams["num_epochs"]):
             ##### VALIDATION #####
             myModel = myModel.eval()
@@ -69,8 +69,8 @@ def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
 
             if best_perplexity > perplexity:
                 best_perplexity = perplexity
-                print("saving model")
-                torch.save(myModel.state_dict(), './saved_model.pt')
+                # print("saving model")
+                # torch.save(myModel.state_dict(), './saved_model.pt')
 
             if float(old_perplexity - perplexity) <= 1.0:
                 learning_rate /= 2
@@ -96,8 +96,8 @@ def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
                 torch.nn.utils.clip_grad_norm_(myModel.parameters(), 5, norm_type=2)
                 optimizer.step()
 
-        print("saving model")
-        torch.save(myModel.state_dict(), './saved_model.pt')
+        # print("saving model")
+        # torch.save(myModel.state_dict(), './saved_model.pt')
         print("Training finished")
 
 

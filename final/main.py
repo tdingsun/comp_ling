@@ -172,6 +172,8 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
 
     x0 = x[:, 0, :]
     x1 = x[:, 1, :]
+    print(x0.shape)
+
     x0_em = model.getEmbedding(x0)
     x1_em = model.getMebedding(x1)
     print(x0_em.shape)

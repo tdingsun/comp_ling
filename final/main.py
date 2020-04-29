@@ -237,7 +237,7 @@ if __name__ == "__main__":
                     vocab_size, 
                     char_vocab_size,
                     hyperparams["lstm_seq_len"],
-                    hyperparams["lstm_batch_size"]).to(device)
+                    hyperparams["lstm_batch_size"])
     print("Model made")
 
     # Loss function
@@ -246,6 +246,7 @@ if __name__ == "__main__":
     if args.load:
         print("Loading Model")
         myModel.load_state_dict(torch.load('./model.pt'))
+        myModel.to(device)
     if args.train:
         print("training")
         train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams)

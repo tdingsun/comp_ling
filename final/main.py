@@ -170,8 +170,8 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     x = torch.tensor(input_seq).to(device)
     x = x.view(1, -1, max_word_len+2)
 
-    x0 = x[:, 0, :].view(1, 1, max_word_len+2)
-    x1 = x[:, 1, :].view(1, 1, max_word_len+2)
+    x0 = x[:, 0:2, :]
+    x1 = x[:, 2:4, :]
     print(x0.shape)
 
     x0_em = model.getEmbedding(x0)

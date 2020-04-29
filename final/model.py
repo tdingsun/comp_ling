@@ -88,7 +88,7 @@ class CharLM(nn.Module):
             chosen_list.append(chosen)
         
         # (batch_size, total_num_filers)
-        return torch.cat(chosen_list, -1)
+        return torch.cat(chosen_list, 1)
     
     def getEmbedding(self, x):
         self.batch_size = x.size()[0]

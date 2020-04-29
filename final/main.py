@@ -22,7 +22,7 @@ hyperparams = {
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
+def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
     """
     Training loop that trains BERT model.
 
@@ -43,7 +43,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
     with experiment.train():        
         for epoch in range(hyperparams["num_epochs"]):
             ##### VALIDATION #####
-            model = model.eval()
+            myModel = myModel.eval()
             loss_batch = []
             perplexity_batch = []
 
@@ -51,7 +51,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
                 hidden = [state.detach() for state in hidden]
-                v_output, hidden = model(x, hidden)
+                v_output, hidden = myModel(x, hidden)
                 y = y.contiguous().view(-1)
 
                 loss = loss_fn(v_output, y)
@@ -70,7 +70,7 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
             if best_perplexity > perplexity:
                 best_perplexity = perplexity
                 print("saving model")
-                torch.save(model.state_dict(), './saved_model.pt')
+                torch.save(myModel.state_dict(), './saved_model.pt')
 
             if float(old_perplexity - perplexity) <= 1.0:
                 learning_rate /= 2
@@ -79,29 +79,29 @@ def train(model, train_loader, loss_fn, word2id, experiment, hyperparams):
             old_perplexity = perplexity
 
             ##### TRAINING #####
-            model = model.train()
-            optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate, momentum = 0.85)
+            myModel = myModel.train()
+            optimizer = torch.optim.SGD(myModel.parameters(), lr = learning_rate, momentum = 0.85)
             for batch in tqdm(train_loader):
                 optimizer.zero_grad()
 
                 x = batch['input_vecs'].to(device)
                 y = batch['label_vecs'].to(device)
                 hidden = [state.detach() for state in hidden]
-                output, hidden = model(x, hidden)
+                output, hidden = myModel(x, hidden)
                 y = y.contiguous().view(-1)
 
                 loss = loss_fn(output, y)
                 
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 5, norm_type=2)
+                torch.nn.utils.clip_grad_norm_(myModel.parameters(), 5, norm_type=2)
                 optimizer.step()
 
         print("saving model")
-        torch.save(model.state_dict(), './saved_model.pt')
+        torch.save(myModel.state_dict(), './saved_model.pt')
         print("Training finished")
 
 
-def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
+def test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams):
     """
     Testing loop for BERT model and logs perplexity and accuracy to comet.ml.
 
@@ -111,7 +111,7 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
     - experiment: comet.ml experiment object
     - hyperparams: Hyperparameters dictionary
     """
-    model = model.eval()
+    myModel = myModel.eval()
     loss_batch = []
     perplexity_batch = []
 
@@ -125,7 +125,7 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
             y = batch['label_vecs'].to(device)
             hidden = [state.detach() for state in hidden]
 
-            test_output, hidden = model(x, hidden)
+            test_output, hidden = myModel(x, hidden)
             y = y.contiguous().view(-1)
 
             loss = loss_fn(test_output, y)
@@ -140,7 +140,7 @@ def test(model, test_loader, loss_fn, word2id, experiment, hyperparams):
         
         experiment.log_metric("perplexity", perplexity)
 
-def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=20, top_k=10):
+def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=50, top_k=10):
     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 
@@ -152,10 +152,9 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         x = torch.tensor(input_seq).to(device)
         x = x.view(1, -1, max_word_len+2)
         hidden = [state.detach() for state in hidden]
-        output, hidden = model(x, hidden, generate=True)
+        output, hidden = myModel(x, hidden, generate=True)
         topk = torch.topk(output[-1, :], top_k).indices
         rand = random.randint(0, top_k-1)
-        # rand = 0
         chosen_index = topk[rand].item()
         input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
         output_seq += [chosen_index]
@@ -163,17 +162,17 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=30, top_k=100):
+def wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=30, top_k=100):
 
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
     x = torch.tensor(input_seq).to(device)
     x = x.view(1, -1, max_word_len+2)
-    embedding = model.getEmbedding(x)
+    embedding = myModel.getEmbedding(x)
     print(embedding.shape)
     for i in range(ntok):
         embedding += torch.randn(embedding.size()[0], embedding.size()[1]).to(device) * 2.0
-        logits = model.getWordFromEmbedding(embedding)
+        logits = myModel.getWordFromEmbedding(embedding)
         topk = torch.topk(logits[-1, :], top_k).indices
         # rand = random.randint(0, top_k-1)
         print(topk.shape)
@@ -207,6 +206,7 @@ if __name__ == "__main__":
 
     print(args.num_epochs)
     hyperparams["num_epochs"] = args.num_epochs
+
     # Comet.ml setup
     experiment = Experiment(log_code=False)
     experiment.log_parameters(hyperparams)
@@ -232,33 +232,35 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
 
     # Make model
-    model = CharLM(hyperparams["char_embed_size"], 
+    myModel = CharLM(hyperparams["char_embed_size"], 
                     hyperparams["word_embed_size"], 
                     vocab_size, 
                     char_vocab_size,
                     hyperparams["lstm_seq_len"],
                     hyperparams["lstm_batch_size"]).to(device)
     print("Model made")
+
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
 
     if args.load:
-        model = torch.load('./saved_model.pt')
-        print("loading model")
+        print("Loading Model")
+        myModel = torch.load('./saved_model.pt')
     if args.train:
         print("training")
-        train(model, train_loader, loss_fn, word2id, experiment, hyperparams)
+        train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams)
     if args.test:
         print("testing")
-        test(model, test_loader, loss_fn, word2id, experiment, hyperparams)
+        test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams)
     if args.save:
-        torch.save(model, './saved_model.pt')
+        print("Saving Model")
+        torch.save(myModel, './saved_model.pt')
     if args.generate:
         while True:
             input_text = input("Input: ")
-            generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)
+            generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
     if args.wordpath:
         while True:
             input_text = input("Input: ")
-            wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)
+            wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
  

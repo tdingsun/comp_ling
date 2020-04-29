@@ -175,7 +175,7 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     print(x0.shape)
 
     x0_em = model.getEmbedding(x0)
-    x1_em = model.getMebedding(x1)
+    x1_em = model.getEmbedding(x1)
     print(x0_em.shape)
 
     stepsize = 1.0 / float(ntok)

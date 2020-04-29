@@ -163,7 +163,7 @@ def generate(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=20, top_k=10):
+def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device, ntok=30, top_k=100):
 
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
@@ -172,7 +172,7 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     embedding = model.getEmbedding(x)
     print(embedding.shape)
     for i in range(ntok):
-        embedding += torch.randn(embedding.size()[0], embedding.size()[1]).to(device)
+        embedding += torch.randn(embedding.size()[0], embedding.size()[1]).to(device) * 2.0
         logits = model.getWordFromEmbedding(embedding)
         topk = torch.topk(logits[-1, :], top_k).indices
         # rand = random.randint(0, top_k-1)

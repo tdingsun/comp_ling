@@ -280,6 +280,7 @@ if __name__ == "__main__":
             input_text = input("Input: ")
             generate(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)
     if args.wordpath:
+        while True:
             input_text = input("Input: ")
             wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2word, device)
  

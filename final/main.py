@@ -178,7 +178,7 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
         new_embedding = embeddings[0, 0, :] * t + embeddings[0, 1, :] * (1.0 - t)
         print(new_embedding.shape)
         logits = model.getWordFromEmbedding(new_embedding)
-        topk = torch.topk(logits[-1, :], top_k).indices
+        topk = torch.topk(logits, top_k).indices
         # rand = random.randint(0, top_k-1)
         rand = 0
         chosen_index = topk[rand].item()

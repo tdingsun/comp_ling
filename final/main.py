@@ -169,21 +169,11 @@ def wordpath(input_text, model, experiment, char2id, max_word_len, word2id, id2w
     output_seq = []
     x = torch.tensor(input_seq).to(device)
     x = x.view(1, -1, max_word_len+2)
-
-    x0 = x[:, 0:2, :]
-    x1 = x[:, 2:4, :]
-    print(x0.shape)
-
-    x0_em = model.getEmbedding(x0)
-    x1_em = model.getEmbedding(x1)
-    print(x0_em.shape)
-
-    stepsize = 1.0 / float(ntok)
-    t = stepsize
+    embedding = model.getEmbedding(x)
+    print(embedding.shape)
     for i in range(ntok):
-        new_embedding = x0_em[0, 0, :] * t + x1_em[0, 1, :] * (1.0 - t)
-        print(new_embedding.shape)
-        logits = model.getWordFromEmbedding(new_embedding)
+        embedding += torch.randn(embedding.size()[0], embedding.size()[1], embedding.size()[2])
+        logits = model.getWordFromEmbedding(embedding)
         topk = torch.topk(logits, top_k).indices
         # rand = random.randint(0, top_k-1)
         rand = 0

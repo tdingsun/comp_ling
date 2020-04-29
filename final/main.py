@@ -243,7 +243,7 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
 
     if args.load:
-        model.load_state_dict(torch.load('./saved_model.pt'))
+        model = torch.load('./saved_model.pt')
         print("loading model")
     if args.train:
         print("training")
@@ -252,7 +252,7 @@ if __name__ == "__main__":
         print("testing")
         test(model, test_loader, loss_fn, word2id, experiment, hyperparams)
     if args.save:
-        torch.save(model.state_dict(), './saved_model.pt')
+        torch.save(model, './saved_model.pt')
     if args.generate:
         while True:
             input_text = input("Input: ")

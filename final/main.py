@@ -140,7 +140,7 @@ def test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams):
         
         experiment.log_metric("perplexity", perplexity)
 
-def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=50, top_k=10):
+def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=20):
     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 
@@ -148,7 +148,6 @@ def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
     for i in range(ntok):
-
         x = torch.tensor(input_seq).to(device)
         x = x.view(1, -1, max_word_len+2)
         hidden = [state.detach() for state in hidden]
@@ -163,7 +162,7 @@ def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id
     print(input_text + " " + " ".join(decoded_output))
 
 def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=10):
-
+    input_text = "*STOP* " + input_text
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
     x = torch.tensor(input_seq).to(device)

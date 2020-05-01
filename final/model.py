@@ -87,6 +87,7 @@ class CharLM(nn.Module):
             print(len(chosen.shape))
             if len(chosen.shape) == 1:
                 chosen = chosen.contiguous().view(1, -1)
+                print(chosen.shape)
             chosen_list.append(chosen)
         
         # (batch_size, total_num_filers)

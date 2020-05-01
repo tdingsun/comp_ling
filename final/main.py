@@ -162,7 +162,7 @@ def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=10):
+def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=10):
 
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
@@ -172,6 +172,28 @@ def wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id
     print(embedding.shape)
     for i in range(ntok):
         embedding += torch.randn(embedding.size()[0], embedding.size()[1]).to(device) * 2048.0
+        logits = myModel.getWordFromEmbedding(embedding)
+        topk = torch.topk(logits[-1, :], top_k).indices
+        # rand = random.randint(0, top_k-1)
+        rand = 0
+        chosen_index = topk[rand].item()
+        input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
+        output_seq += [chosen_index]
+    
+    decoded_output = [id2word[word] for word in output_seq]
+    print(input_text + " " + " ".join(decoded_output))
+
+def wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=10):
+
+    input_seq = tokenize(input_text.split(), char2id, max_word_len)
+    output_seq = []
+    x = torch.tensor(input_seq).to(device)
+    x = x.view(1, -1, max_word_len+2)
+    embedding = myModel.getEmbedding(x)
+    print(embedding.shape)
+    stepsize = 1.0/float(ntok)
+    for i in range(ntok):
+        embedding = embedding.size()[0](stepsize * i) + embedding.size()[1](1-(stepsize * i))
         logits = myModel.getWordFromEmbedding(embedding)
         topk = torch.topk(logits[-1, :], top_k).indices
         # rand = random.randint(0, top_k-1)
@@ -199,7 +221,9 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--generate", action="store_true",
                         help="generate words")
     parser.add_argument("-w", "--wordpath", action="store_true",
-                        help="special function")      
+                        help="special function")
+    parser.add_argument("-c", "--crawl", action="store_true",
+                        help="special function")       
     parser.add_argument("-num_epochs", "--num_epochs", type=int)              
     args = parser.parse_args()
 
@@ -262,4 +286,8 @@ if __name__ == "__main__":
         while True:
             input_text = input("Input: ")
             wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+    if args.crawl:
+        while True:
+            input_text = input("Input: ")
+            crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
  

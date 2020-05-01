@@ -87,13 +87,16 @@ class CharLM(nn.Module):
             chosen_list.append(chosen)
         
         # (batch_size, total_num_filers)
-        return torch.cat(chosen_list, 1)
+        if len(chosen_list > 0):
+            return torch.cat(chosen_list, 1)
+        else:
+            return chosen_list[0]
     
     def getEmbedding(self, x):
         self.batch_size = x.size()[0]
         self.seq_len = x.size()[1]
         self.cnn_batch_size = self.batch_size * self.seq_len
-        
+
         x = x.contiguous().view(-1, x.size()[2])
         #batch_size*seq_len x max_word_len+2
         x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
@@ -102,9 +105,9 @@ class CharLM(nn.Module):
         x = self.batch_norm(x) #output: batch_size*seq_len x total_num_filters (525)
         x = self.highway1(x) #output: batch_size*seq_len x total_num_filters (525)
         x = self.highway2(x) #output: batch_size*seq_len x total_num_filters (525)
-        x = x.contiguous().view(self.batch_size, self.seq_len, -1) #output: batch_size x seq_len x total_num_filters (525)
-        x, hidden = self.lstm(x) #output: batch_size x seq_len x lstm hidden size (300)
-        x = x.contiguous().view(self.cnn_batch_size, -1) #output: batch_size*seq_len x lstm hidden size (300)
+        # x = x.contiguous().view(self.batch_size, self.seq_len, -1) #output: batch_size x seq_len x total_num_filters (525)
+        # x, hidden = self.lstm(x) #output: batch_size x seq_len x lstm hidden size (300)
+        # x = x.contiguous().view(self.cnn_batch_size, -1) #output: batch_size*seq_len x lstm hidden size (300)
         return x
     
 

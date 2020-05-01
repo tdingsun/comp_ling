@@ -84,10 +84,6 @@ class CharLM(nn.Module):
             # (batch_size, out_channel, 1)            
             chosen = chosen.squeeze()
             # (batch_size, out_channel)
-            print(len(chosen.shape))
-            if len(chosen.shape) == 1:
-                chosen = chosen.contiguous().view(1, -1)
-                print(chosen.shape)
             chosen_list.append(chosen)
         
         # (batch_size, total_num_filers)

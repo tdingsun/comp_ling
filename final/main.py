@@ -229,7 +229,7 @@ if __name__ == "__main__":
     valid_loader = DataLoader(valid_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
 
     test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
-    test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=False)
+    test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
 
     # Make model
     myModel = CharLM(hyperparams["char_embed_size"], 

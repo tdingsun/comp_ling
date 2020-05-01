@@ -72,7 +72,13 @@ def create_dicts(train_file, valid_file, test_file):
     content += read_file(valid_file)
     content += read_file(test_file)
 
-    word2id = {word:id for id, word in enumerate(set(content))}
+    word2id = {}
+    curr_id = 0
+    for word in content:
+        if word not in word2id:
+            word2id[word] = curr_id
+            curr_id += 1
+            
 
     char2id = {}
     curr_id = 1

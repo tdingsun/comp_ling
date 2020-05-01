@@ -87,7 +87,7 @@ class CharLM(nn.Module):
             chosen_list.append(chosen)
         
         # (batch_size, total_num_filers)
-        if len(chosen_list > 0):
+        if len(chosen_list) > 0:
             return torch.cat(chosen_list, 1)
         else:
             return chosen_list[0]

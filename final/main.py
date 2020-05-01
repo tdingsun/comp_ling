@@ -183,7 +183,7 @@ def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2wo
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=10):
+def wordpath(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=10, top_k=10):
 
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []

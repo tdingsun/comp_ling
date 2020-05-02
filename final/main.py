@@ -182,6 +182,31 @@ def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2wo
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
+def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, top_k=5):
+    hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
+
+    input_text = "*STOP* " + input_text
+    input_seq = tokenize(input_text.split(), char2id, max_word_len)
+    output_seq = input_text
+    while True:
+        x = torch.tensor(input_seq).to(device)
+        x = x.view(1, -1, max_word_len+2)
+        hidden = [state.detach() for state in hidden]
+        output, hidden = myModel(x, hidden, generate=True)
+        topk = torch.topk(output[-1, :], top_k).indices
+        rand = random.randint(0, top_k-1)
+        chosen_index = topk[rand].item()
+        input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
+        output_seq += " " + id2word[chosen_index]
+        
+        next_input = input("Next Word: ")
+        input_seq += tokenize(next_input.split(), char2id, max_word_len)
+        output_seq += " " + next_input
+        print(output_seq)
+    
+    print(output_seq)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("train_file")
@@ -197,7 +222,7 @@ if __name__ == "__main__":
                         help="run testing loop")
     parser.add_argument("-g", "--generate", action="store_true",
                         help="generate words")
-    parser.add_argument("-w", "--wordpath", action="store_true",
+    parser.add_argument("-p", "--passback", action="store_true",
                         help="special function")
     parser.add_argument("-c", "--crawl", action="store_true",
                         help="special function")       
@@ -263,4 +288,9 @@ if __name__ == "__main__":
         while True:
             input_text = input("Input: ")
             crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+    if args.passback:
+        input_text = input("Input: ")
+        passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+ 
+
  

@@ -199,7 +199,7 @@ def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id
         chosen_index = topk[rand].item()
         input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
         output_seq += " " + id2word[chosen_index]
-        
+        print(output_seq)
         next_input = input("Next Word: ")
         input_seq += tokenize(next_input.split(), char2id, max_word_len)
         output_seq += " " + next_input

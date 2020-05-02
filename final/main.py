@@ -205,8 +205,6 @@ def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id
         output_seq += " " + next_input
         print(output_seq)
     
-    print(output_seq)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("train_file")

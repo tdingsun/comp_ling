@@ -140,7 +140,7 @@ def test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams):
         
         experiment.log_metric("perplexity", perplexity)
 
-def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=100, top_k=20):
+def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=100, top_k=50):
     hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
 

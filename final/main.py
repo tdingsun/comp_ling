@@ -208,25 +208,7 @@ def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id
 def variable_k(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, k_levels=16):
     for k in range(k_levels):
         top_k = 2 ** k
-        hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
-                Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
-
-        input_text = "*STOP* " + input_text
-        input_seq = tokenize(input_text.split(), char2id, max_word_len)
-        output_seq = []
-        for i in range(ntok):
-            x = torch.tensor(input_seq).to(device)
-            x = x.view(1, -1, max_word_len+2)
-            hidden = [state.detach() for state in hidden]
-            output, hidden = myModel(x, hidden, generate=True)
-            topk = torch.topk(output[-1, :], top_k).indices
-            rand = random.randint(0, top_k-1)
-            chosen_index = topk[rand].item()
-            input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
-            output_seq += [chosen_index]
-        
-        decoded_output = [id2word[word] for word in output_seq]
-        print(input_text + " " + " ".join(decoded_output))        
+        generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, top_k=top_k)       
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -321,7 +303,7 @@ if __name__ == "__main__":
     if args.variable_k:
         while True:
             input_text = input("Input: ")
-            crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+            variable_k(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
  
 
  

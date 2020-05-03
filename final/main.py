@@ -262,6 +262,10 @@ if __name__ == "__main__":
                     hyperparams["lstm_seq_len"],
                     hyperparams["lstm_batch_size"]).to(device)
     print("Model made")
+    
+    for name, param in myModel.named_parameters():
+        if param.requires_grad:
+            print name, param.data
 
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)

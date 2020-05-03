@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
     for name, param in myModel.named_parameters():
         if param.requires_grad:
-            print(name, param.data)
+            print(name, param.data.shape)
 
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)

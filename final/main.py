@@ -176,7 +176,7 @@ def crawl(input_text, myModel, char2id, max_word_len, id2word, device, ntok=500,
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, top_k=5):
+def passback(input_text, myModel, char2id, max_word_len, id2word, device, top_k=5):
     hidden = (Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device))
 
@@ -199,10 +199,10 @@ def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id
         output_seq += " " + next_input
         print(output_seq)
 
-def variable_k(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, k_levels=16):
+def variable_k(input_text, myModel, char2id, max_word_len, id2word, device, k_levels=16):
     for k in range(k_levels):
         top_k = 2 ** k
-        generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, top_k=top_k)       
+        generate(input_text, myModel, char2id, max_word_len, id2word, device, top_k=top_k)       
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -291,10 +291,10 @@ if __name__ == "__main__":
     if args.crawl:
         while True:
             input_text = input("Input: ")
-            crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+            crawl(input_text, myModel, char2id, max_word_len, id2word, device)
     if args.passback:
         input_text = input("Input: ")
-        passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+        passback(input_text, myModel, char2id, max_word_len, id2word, device)
     if args.variable_k:
         while True:
             input_text = input("Input: ")

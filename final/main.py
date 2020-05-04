@@ -64,7 +64,7 @@ def train(myModel, train_loader, loss_fn, experiment, hp):
             loss = np.mean(loss_batch)
             print("[epoch {}] validation perplexity={}".format(epoch, perplexity))
             print("validation loss: ", loss)
-            print("perplexity decrease: ", (float(old_perplexity - perplexity))
+            print("perplexity decrease: ", (float(old_perplexity - perplexity)))
             experiment.log_metric("perplexity", perplexity)
             experiment.log_metric("loss", loss)
 

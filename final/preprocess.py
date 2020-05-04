@@ -5,8 +5,7 @@ import random
 import math
 
 class MyDataset(Dataset):
-    # TODO: Create masked Penn Treebank dataset.
-    #       You can change signature of the initializer.
+
     def __init__(self, input_fn, window_size, batch_size, word2id, char2id, max_word_len):
         super().__init__()
         self.word2id = {PAD_TOKEN: 0, MASK_TOKEN: 1} if word2id == None else word2id
@@ -50,6 +49,17 @@ class MyDataset(Dataset):
         return item
 
 def tokenize(contents, char2id, max_word_len):
+    """
+    Tokenizes words into char-ids
+
+    Inputs:
+    contents: A list of words
+    char2id: Dictionary from characters to char-ids
+    max_word_len: maximum word length
+
+    Outputs:
+    A list of lists of char-ids (each list represents a word)
+    """
     tokenized_content = []
     for word in contents:
         vec = [char2id[char] for char in word]
@@ -60,6 +70,14 @@ def tokenize(contents, char2id, max_word_len):
     return tokenized_content
 
 def read_file(fname):
+    """
+    Reads files and splits and concatenates the lines
+
+    Inputs:
+    fname: filename
+
+    Outputs: List of words (strings)
+    """
     content = []
     with open(fname) as f:
         for line in f.readlines():
@@ -67,6 +85,18 @@ def read_file(fname):
     return content
 
 def create_dicts(train_file, valid_file, test_file):
+    """
+    Creates word2id and char2id dicts
+
+    input:
+    train_file: filename for training file
+    valid_file: filename for validation file
+    test_file: filename for testing file
+
+    Output:
+    word2id: Dictionarie from words to word-ids,
+    char2id: Dictionary from characters to char-ids
+    """
     content = []
     content += read_file(train_file)
     content += read_file(valid_file)

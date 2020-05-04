@@ -20,7 +20,6 @@ class Highway(nn.Module):
 class CharLM(nn.Module):
     def __init__(self, char_e_dim, word_e_dim, vocab_size, char_vocab_size, seq_len, batch_size):
         super().__init__()
-        # TODO: Initialize BERT modules
         self.char_e_dim = char_e_dim
         self.word_e_dim = word_e_dim
         self.vocab_size = vocab_size
@@ -41,14 +40,12 @@ class CharLM(nn.Module):
         self.cnn_w7 = nn.Conv2d(in_channels=1, out_channels=200, kernel_size=(self.char_e_dim, 7), bias=True)
 
         self.convolutions = [self.cnn_w1, self.cnn_w2, self.cnn_w3, self.cnn_w4, self.cnn_w5, self.cnn_w6, self.cnn_w7]
-        #tanh activation
-        #max-over-time pooling for all of them, then concat. 
+        
         self.batch_norm = nn.BatchNorm1d(self.highway_input_dim, affine=False)
-        #highway
+        
         self.highway1 = Highway(self.highway_input_dim)
         self.highway2 = Highway(self.highway_input_dim)
 
-        #lstm
         self.lstm = nn.LSTM(input_size=self.highway_input_dim, hidden_size=self.word_e_dim, num_layers=2, bias=True, dropout=0.5, batch_first=True)
         self.dropout = nn.Dropout(p=0.5)
         self.linear = nn.Linear(self.word_e_dim, self.vocab_size)
@@ -61,7 +58,6 @@ class CharLM(nn.Module):
             self.seq_len = x.size()[1]
             self.cnn_batch_size = self.batch_size * self.seq_len
         x = x.contiguous().view(-1, x.size()[2])
-        #batch_size*seq_len x max_word_len+2
         x = self.char_embedding_layer(x) #output: batch_size*seq_len x max_wrd_len+2 x char_emb_dim (15)
         x = torch.transpose(x.view(x.size()[0], 1, x.size()[1], -1), 2, 3) #output: batch_size*seq_len x 1 x max_word_len+2 x char_emb_dim
         x = self.conv_layers(x) #output: batch_size*seq_len x total_num_filters (525)

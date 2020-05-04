@@ -63,8 +63,8 @@ def train(myModel, train_loader, loss_fn, experiment, hp):
             perplexity = np.mean(perplexity_batch)
             loss = np.mean(loss_batch)
             print("[epoch {}] validation perplexity={}".format(epoch, perplexity))
-            print("validation loss={}".format(loss))
-            print("perplexity decrease={}".format(float(old_perplexity - perplexity)))
+            print("validation loss: ", loss)
+            print("perplexity decrease: ", (float(old_perplexity - perplexity))
             experiment.log_metric("perplexity", perplexity)
             experiment.log_metric("loss", loss)
 
@@ -100,11 +100,12 @@ def train(myModel, train_loader, loss_fn, experiment, hp):
 
 def test(myModel, test_loader, loss_fn, experiment, hp):
     """
-    Testing loop for BERT model and logs perplexity and accuracy to comet.ml.
+    Testing loop for CharLM model and logs perplexity and accuracy to comet.ml.
 
     Inputs:
-    - model: A BERT model
-    - train_loader: Dataloader of training data
+    - model: A CharLM model
+    - test_loader: Dataloader of testing data
+    - loss_fn: loss function
     - experiment: comet.ml experiment object
     - hp: Hyperparameters dictionary
     """
@@ -138,6 +139,19 @@ def test(myModel, test_loader, loss_fn, experiment, hp):
         experiment.log_metric("perplexity", perplexity)
 
 def generate(input_text, myModel, char2id, max_word_len, id2word, device, ntok=100, top_k=5):
+    """
+    Generate text using the CharLM Model
+
+    Inputs:
+    input_text: user-inputted text
+    myModel: CharLM Model
+    char2id: dictionary that maps characters to char-ids
+    max_word_Len: The maximum length of a word
+    id2word: dictionary that maps word-ids to words
+    device: GPU or CPU device
+    ntok: Number of tokens to generate
+    top_k: k value to use in top k
+    """
     hidden = (Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device))
 
@@ -158,14 +172,25 @@ def generate(input_text, myModel, char2id, max_word_len, id2word, device, ntok=1
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def crawl(input_text, myModel, char2id, max_word_len, id2word, device, ntok=500, top_k=10):
+def crawl(input_text, myModel, char2id, max_word_len, id2word, device, ntok=500):
+    """
+    Generate text by randoming crawling away from the input text
+
+    Inputs:
+    input_text: user-inputted text
+    myModel: CharLM Model
+    char2id: dictionary that maps characters to char-ids
+    max_word_Len: The maximum length of a word
+    id2word: dictionary that maps word-ids to words
+    device: GPU or CPU device
+    ntok: Number of tokens to generate
+    """
     input_text = "*STOP* " + input_text
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
     x = torch.tensor(input_seq).to(device)
     x = x.view(1, -1, max_word_len+2)
     embedding = myModel.getEmbedding(x)
-    print(embedding.shape)
     for i in range(ntok):
         embedding += torch.randn(embedding.size()[0], embedding.size()[1]).to(device) * 2048.0
         logits = myModel.getWordFromEmbedding(embedding)
@@ -177,6 +202,18 @@ def crawl(input_text, myModel, char2id, max_word_len, id2word, device, ntok=500,
     print(input_text + " " + " ".join(decoded_output))
 
 def passback(input_text, myModel, char2id, max_word_len, id2word, device, top_k=5):
+    """
+    Generate text back and forth with the user
+
+    Inputs:
+    input_text: initial user-inputted text
+    myModel: CharLM Model
+    char2id: dictionary that maps characters to char-ids
+    max_word_Len: The maximum length of a word
+    id2word: dictionary that maps word-ids to words
+    device: GPU or CPU device
+    top_k: k value to use in top k
+    """
     hidden = (Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device), 
               Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device))
 
@@ -200,6 +237,19 @@ def passback(input_text, myModel, char2id, max_word_len, id2word, device, top_k=
         print(output_seq)
 
 def variable_k(input_text, myModel, char2id, max_word_len, id2word, device, k_levels=16):
+    """
+    Generate text based on the same input text, while varying the k value used in top k
+
+    Inputs:
+    input_text: user-inputted text
+    myModel: CharLM Model
+    char2id: dictionary that maps characters to char-ids
+    max_word_Len: The maximum length of a word
+    id2word: dictionary that maps word-ids to words
+    device: GPU or CPU device
+    ntok: Number of tokens to generate
+    k-levels: how many variants to generate
+    """
     for k in range(k_levels):
         top_k = 2 ** k
         generate(input_text, myModel, char2id, max_word_len, id2word, device, top_k=top_k)       
@@ -228,7 +278,7 @@ if __name__ == "__main__":
     parser.add_argument("-num_epochs", "--num_epochs", type=int)              
     args = parser.parse_args()
 
-    print(args.num_epochs)
+    print("Num epochs: ", args.num_epochs)
     hp["num_epochs"] = args.num_epochs
 
     # Comet.ml setup
@@ -298,7 +348,7 @@ if __name__ == "__main__":
     if args.variable_k:
         while True:
             input_text = input("Input: ")
-            variable_k(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+            variable_k(input_text, myModel, char2id, max_word_len, id2word, device)
  
 
  

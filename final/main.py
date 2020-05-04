@@ -10,39 +10,40 @@ import random
 import argparse
 from tqdm import tqdm  # optional progress bar
 
-# TODO: Set hyperparameters
-hyperparams = {
+hp = {
     "num_epochs": 1,
     "lr": 1.0,
     "lstm_batch_size": 20,
     "lstm_seq_len": 35,
     "word_embed_size": 650,
-    "char_embed_size": 15
+    "char_embed_size": 15,
+    "momentum": 0.85
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
+def train(myModel, train_loader, loss_fn, experiment, hp):
     """
-    Training loop that trains BERT model.
+    Training loop that trains CharLM model.
 
     Inputs:
-    - model: A BERT model
+    - model: A CharLM model
     - train_loader: Dataloader of training data
+    - loss_fn: Loss Function
     - experiment: comet.ml experiment object
-    - hyperparams: Hyperparameters dictionary
+    - hp: Hyperparameters dictionary
     """
 
-    learning_rate = hyperparams["lr"]
+    learning_rate = hp["lr"]
     old_perplexity = 100000
     best_perplexity = 100000
 
-    hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
-              Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
+    hidden = (Variable(torch.zeros(2, hp['lstm_batch_size'], hp['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, hp['lstm_batch_size'], hp['word_embed_size'])).to(device))
 
     with experiment.train():
-        for epoch in range(hyperparams["num_epochs"]):
-            ##### VALIDATION #####
+        for epoch in range(hp["num_epochs"]):
+            ##### VALIDATION LOOP #####
             myModel = myModel.eval()
             loss_batch = []
             perplexity_batch = []
@@ -69,18 +70,16 @@ def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
 
             if best_perplexity > perplexity:
                 best_perplexity = perplexity
-                # print("saving model")
-                # torch.save(myModel.state_dict(), './saved_model.pt')
 
             if float(old_perplexity - perplexity) <= 1.0:
                 learning_rate /= 2
-                print("halved lr:{}".format(learning_rate))
+                print("new lr: ", learning_rate)
             
             old_perplexity = perplexity
 
             ##### TRAINING #####
             myModel = myModel.train()
-            optimizer = torch.optim.SGD(myModel.parameters(), lr = learning_rate, momentum = 0.85)
+            optimizer = torch.optim.SGD(myModel.parameters(), lr = learning_rate, momentum = hp["momentum"])
             for batch in tqdm(train_loader):
                 optimizer.zero_grad()
 
@@ -96,12 +95,10 @@ def train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams):
                 torch.nn.utils.clip_grad_norm_(myModel.parameters(), 5, norm_type=2)
                 optimizer.step()
 
-        # print("saving model")
-        # torch.save(myModel.state_dict(), './saved_model.pt')
         print("Training finished")
 
 
-def test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams):
+def test(myModel, test_loader, loss_fn, experiment, hp):
     """
     Testing loop for BERT model and logs perplexity and accuracy to comet.ml.
 
@@ -109,14 +106,14 @@ def test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams):
     - model: A BERT model
     - train_loader: Dataloader of training data
     - experiment: comet.ml experiment object
-    - hyperparams: Hyperparameters dictionary
+    - hp: Hyperparameters dictionary
     """
     myModel = myModel.eval()
     loss_batch = []
     perplexity_batch = []
 
-    hidden = (Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device), 
-              Variable(torch.zeros(2, hyperparams['lstm_batch_size'], hyperparams['word_embed_size'])).to(device))
+    hidden = (Variable(torch.zeros(2, hp['lstm_batch_size'], hp['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, hp['lstm_batch_size'], hp['word_embed_size'])).to(device))
 
     with experiment.test(), torch.no_grad():
 
@@ -140,9 +137,9 @@ def test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams):
         
         experiment.log_metric("perplexity", perplexity)
 
-def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=100, top_k=5):
-    hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
-              Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
+def generate(input_text, myModel, char2id, max_word_len, id2word, device, ntok=100, top_k=5):
+    hidden = (Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device))
 
     input_text = "*STOP* " + input_text
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
@@ -161,7 +158,7 @@ def generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id
     decoded_output = [id2word[word] for word in output_seq]
     print(input_text + " " + " ".join(decoded_output))
 
-def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, ntok=500, top_k=10):
+def crawl(input_text, myModel, char2id, max_word_len, id2word, device, ntok=500, top_k=10):
     input_text = "*STOP* " + input_text
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
     output_seq = []
@@ -172,10 +169,7 @@ def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2wo
     for i in range(ntok):
         embedding += torch.randn(embedding.size()[0], embedding.size()[1]).to(device) * 2048.0
         logits = myModel.getWordFromEmbedding(embedding)
-        topk = torch.topk(logits[-1, :], top_k).indices
-        # rand = random.randint(0, top_k-1)
-        rand = 0
-        chosen_index = topk[rand].item()
+        chosen_index = torch.argmax(logits[-1, :]).item()
         input_seq += tokenize([id2word[chosen_index]], char2id, max_word_len)
         output_seq += [chosen_index]
     
@@ -183,8 +177,8 @@ def crawl(input_text, myModel, experiment, char2id, max_word_len, word2id, id2wo
     print(input_text + " " + " ".join(decoded_output))
 
 def passback(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device, top_k=5):
-    hidden = (Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device), 
-              Variable(torch.zeros(2, 1, hyperparams['word_embed_size'])).to(device))
+    hidden = (Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device), 
+              Variable(torch.zeros(2, 1, hp['word_embed_size'])).to(device))
 
     input_text = "*STOP* " + input_text
     input_seq = tokenize(input_text.split(), char2id, max_word_len)
@@ -235,11 +229,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(args.num_epochs)
-    hyperparams["num_epochs"] = args.num_epochs
+    hp["num_epochs"] = args.num_epochs
 
     # Comet.ml setup
     experiment = Experiment(log_code=False)
-    experiment.log_parameters(hyperparams)
+    experiment.log_parameters(hp)
 
     # Load dataset
     word2id, char2id = create_dicts(args.train_file, args.valid_file, args.test_file)
@@ -252,27 +246,28 @@ if __name__ == "__main__":
     char_vocab_size = len(char2id)
     print("Char vocab size: ", char_vocab_size)
 
-    train_set = MyDataset(args.train_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
-    valid_set = MyDataset(args.valid_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
+    train_set = MyDataset(args.train_file, hp['lstm_seq_len'], hp['lstm_batch_size'], word2id, char2id, max_word_len)
+    valid_set = MyDataset(args.valid_file, hp['lstm_seq_len'], hp['lstm_batch_size'], word2id, char2id, max_word_len)
 
-    train_loader = DataLoader(train_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
-    valid_loader = DataLoader(valid_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=hp['lstm_batch_size'], shuffle=True)
+    valid_loader = DataLoader(valid_set, batch_size=hp['lstm_batch_size'], shuffle=True)
 
-    test_set = MyDataset(args.test_file, hyperparams['lstm_seq_len'], hyperparams['lstm_batch_size'], word2id, char2id, max_word_len)
-    test_loader = DataLoader(test_set, batch_size=hyperparams['lstm_batch_size'], shuffle=True)
+    test_set = MyDataset(args.test_file, hp['lstm_seq_len'], hp['lstm_batch_size'], word2id, char2id, max_word_len)
+    test_loader = DataLoader(test_set, batch_size=hp['lstm_batch_size'], shuffle=True)
 
     # Make model
-    myModel = CharLM(hyperparams["char_embed_size"], 
-                    hyperparams["word_embed_size"], 
+    myModel = CharLM(hp["char_embed_size"], 
+                    hp["word_embed_size"], 
                     vocab_size, 
                     char_vocab_size,
-                    hyperparams["lstm_seq_len"],
-                    hyperparams["lstm_batch_size"]).to(device)
+                    hp["lstm_seq_len"],
+                    hp["lstm_batch_size"]).to(device)
     print("Model made")
 
-    for name, param in myModel.named_parameters():
-        if param.requires_grad:
-            print(name, param.data.shape)
+    # #Print model parameters
+    # for name, param in myModel.named_parameters():
+    #     if param.requires_grad:
+    #         print(name, param.data.shape)
 
     # Loss function
     loss_fn = nn.CrossEntropyLoss(ignore_index = 0)
@@ -282,17 +277,17 @@ if __name__ == "__main__":
         myModel.load_state_dict(torch.load('./model.pt'))
     if args.train:
         print("training")
-        train(myModel, train_loader, loss_fn, word2id, experiment, hyperparams)
+        train(myModel, train_loader, loss_fn, experiment, hp)
     if args.test:
         print("testing")
-        test(myModel, test_loader, loss_fn, word2id, experiment, hyperparams)
+        test(myModel, test_loader, loss_fn, experiment, hp)
     if args.save:
         print("Saving Model")
         torch.save(myModel.state_dict(), './model.pt')
     if args.generate:
         while True:
             input_text = input("Input: ")
-            generate(input_text, myModel, experiment, char2id, max_word_len, word2id, id2word, device)
+            generate(input_text, myModel, char2id, max_word_len, id2word, device)
     if args.crawl:
         while True:
             input_text = input("Input: ")
